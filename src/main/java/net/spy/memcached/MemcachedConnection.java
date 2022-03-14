@@ -95,6 +95,10 @@ import net.spy.memcached.ops.TapOperation;
 import net.spy.memcached.ops.VBucketAware;
 import net.spy.memcached.protocol.binary.TapAckOperationImpl;
 import net.spy.memcached.util.StringUtils;
+import net.spy.memcached.TLSConnectionHandler;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 /**
  * Connection to a cluster of memcached servers. 
@@ -283,6 +287,12 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
   private final int wakeupDelay;
 
   /**
+   * For determining if this connection is TLS enabled or disabled.
+   */
+  private final boolean isTlsMode;
+
+
+  /**
    * Construct a {@link MemcachedConnection}.
    *
    * @param bufSize the size of the buffer used for reading from the server
@@ -315,6 +325,8 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     listenerExecutorService = f.getListenerExecutorService();
     this.bufSize = bufSize;
     this.connectionFactory = f;
+
+    isTlsMode = f.getSSLContext() != null;
 
     String verifyAlive = System.getProperty("net.spy.verifyAliveOnConnect");
     if(verifyAlive != null && verifyAlive.equals("true")) {
@@ -423,6 +435,7 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
       ch.configureBlocking(false);
       MemcachedNode qa =
           this.connectionFactory.createMemcachedNode(sa, ch, bufSize);
+
       qa.setNodeEndPoint(endPoint);
       int ops = 0;
 
@@ -936,6 +949,14 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
    */
   private void finishConnect(final SelectionKey sk, final MemcachedNode node)
     throws IOException {
+    // After the socket channel is connected, we need to do TLS handshake for TLS connection before verifying the connection is alive.
+    if (isTlsMode){
+      boolean isHandShakeSuccess = node.doTlsHandshake(connectionFactory.getOperationTimeout());
+      if (!isHandShakeSuccess){
+        throw new RuntimeException("The TLS connection can't be established due to TLS handshake failure.");
+      }
+    }
+    
     if (verifyAliveOnConnect) {
       final CountDownLatch latch = new CountDownLatch(1);
       final OperationFuture<Boolean> rv = new OperationFuture<Boolean>("noop",
@@ -1025,7 +1046,10 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
       currentOp = handleReadsWhenChannelEndOfStream(currentOp, node, rbuf);
     }
 
-    while (read > 0) {
+    while (read > 0 || 
+        (isTlsMode && rbuf.position() > 0)) { // This condition is for handling large size encrypted data 
+                                              // received from server when TLS enabled. We need to compact() 
+                                              // rbuf after single decryptNextTLSDataRecord() action.
       getLogger().debug("Read %d bytes", read);
       rbuf.flip();
       while (rbuf.remaining() > 0) {
@@ -1038,13 +1062,28 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
         metrics.updateHistogram(OVERALL_AVG_TIME_ON_WIRE_METRIC,
           (int)(timeOnWire / 1000));
         metrics.markMeter(OVERALL_RESPONSE_METRIC);
-        synchronized(currentOp) {
-          readBufferAndLogMetrics(currentOp, rbuf, node);
+        if (!isTlsMode) {
+          synchronized(currentOp) {
+            readBufferAndLogMetrics(currentOp, rbuf, node);
+          }
+          currentOp = node.getCurrentReadOp();
+        } else {
+          // Decrypt the next TLS data record to plain text data.
+          ByteBuffer deBuf = node.decryptNextTLSDataRecord(rbuf);
+          if (deBuf != null) {
+            synchronized(currentOp){
+              readBufferAndLogMetrics(currentOp, deBuf, node);
+            }
+          }
+          currentOp = node.getCurrentReadOp();
+          break;
         }
-
-        currentOp = node.getCurrentReadOp();
       }
-      rbuf.clear();
+      if (isTlsMode) {
+        rbuf.compact();
+      } else {
+        rbuf.clear();
+      }
       read = channel.read(rbuf);
       node.completedRead();
     }

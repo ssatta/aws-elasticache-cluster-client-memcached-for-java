@@ -220,6 +220,8 @@ public interface MemcachedClientIF {
 
   Future<Boolean> flush();
 
+  boolean refreshCertificate();
+
   void shutdown();
 
   boolean shutdown(long timeout, TimeUnit unit);

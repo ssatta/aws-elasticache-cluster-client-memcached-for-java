@@ -29,6 +29,7 @@
 package net.spy.memcached.protocol;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -40,6 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 import net.spy.memcached.ConnectionFactory;
 import net.spy.memcached.FailureMode;
 import net.spy.memcached.MemcachedConnection;
@@ -49,6 +51,13 @@ import net.spy.memcached.config.NodeEndPoint;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationState;
 import net.spy.memcached.protocol.binary.TapAckOperationImpl;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+
+import net.spy.memcached.TLSConnectionHandler;
+
 
 /**
  * Represents a node with the memcached cluster, along with buffering and
@@ -78,6 +87,7 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
   private long defaultOpTimeout;
   private volatile long lastReadTimestamp = System.nanoTime();
   private MemcachedConnection connection;
+  private TLSConnectionHandler tlsConnectionHandler;
 
   // operation Future.get timeout counter
   private final AtomicInteger continuousTimeout = new AtomicInteger(0);
@@ -99,12 +109,39 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
     connectionFactory = fact;
     this.authWaitTime = authWaitTime;
     setChannel(c);
+
+    int tlsBufSize = 0;
+    SSLContext sslContext = fact.getSSLContext();
+    
+    // Initialize SSLEngine and TLSConnectionHandler for TLS connection
+    if (sslContext != null) {
+      SSLEngine sslEngine;
+      if (!fact.skipTlsHostnameVerification() && fact.getHostnameForTlsVerification() == null){
+        throw new IllegalArgumentException("Please specify hostname for TLS verification or explicitly skip hostname verification.");
+      }
+      if (fact.getHostnameForTlsVerification() != null) {
+        // Configure SSLParameters when TLS/SSL hostname verification is enabled.
+        sslEngine = sslContext.createSSLEngine(fact.getHostnameForTlsVerification(), ((InetSocketAddress) sa).getPort());
+        SSLParameters sslParams = sslEngine.getSSLParameters();
+        sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+        sslEngine.setSSLParameters(sslParams);
+      } else {
+        sslEngine = sslContext.createSSLEngine();
+      }
+      sslEngine.setUseClientMode(true);
+      tlsConnectionHandler = new TLSConnectionHandler(c, sslEngine);
+      tlsBufSize = sslEngine.getSession().getPacketBufferSize();
+    }
+    
     // Since these buffers are allocated rarely (only on client creation
     // or reconfigure), and are passed to Channel.read() and Channel.write(),
     // use direct buffers to avoid
     //   http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6214569
-    rbuf = ByteBuffer.allocateDirect(bufSize);
-    wbuf = ByteBuffer.allocateDirect(bufSize);
+    // Dynamic allocate rbuf and wbuf size for TLS connections and non-TLS connections.
+    int rwBufSize = Math.max(bufSize, tlsBufSize);
+    rbuf = ByteBuffer.allocateDirect(rwBufSize);
+    wbuf = ByteBuffer.allocateDirect(rwBufSize);
+
     getWbuf().clear();
     readQ = rq;
     writeQ = wq;
@@ -201,22 +238,34 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
    *
    * @see net.spy.memcached.MemcachedNode#fillWriteBuffer(boolean)
    */
-  public final void fillWriteBuffer(boolean shouldOptimize) {
+  public final void fillWriteBuffer(boolean shouldOptimize) throws IOException {
     if (toWrite == 0 && readQ.remainingCapacity() > 0) {
       getWbuf().clear();
       Operation o=getNextWritableOp();
 
-      while(o != null && toWrite < getWbuf().capacity()) {
+      boolean isTlsBufferOverflow = false;
+      while(o != null && toWrite < getWbuf().capacity() && !isTlsBufferOverflow) {
         synchronized(o) {
           assert o.getState() == OperationState.WRITING;
 
           ByteBuffer obuf = o.getBuffer();
-          assert obuf != null : "Didn't get a write buffer from " + o;
-          int bytesToCopy = Math.min(getWbuf().remaining(), obuf.remaining());
-          byte[] b = new byte[bytesToCopy];
-          obuf.get(b);
-          getWbuf().put(b);
-          getLogger().debug("After copying stuff from %s: %s", o, getWbuf());
+          if (tlsConnectionHandler == null) {
+            assert obuf != null : "Didn't get a write buffer from " + o;
+            int bytesToCopy = Math.min(getWbuf().remaining(), obuf.remaining());
+            byte[] b = new byte[bytesToCopy];
+            obuf.get(b);
+            getWbuf().put(b);
+            getLogger().debug("After copying stuff from %s: %s", o, getWbuf());
+            toWrite += bytesToCopy;
+          } else {
+            int bytesProduced = tlsConnectionHandler.encryptNextTLSDataRecord(obuf, wbuf);
+            if (bytesProduced == -1) {
+              isTlsBufferOverflow = true;
+            } else { 
+              toWrite += bytesProduced;
+            }
+          }
+
           if (!o.getBuffer().hasRemaining()) {
             o.writeComplete();
             transitionWriteItem();
@@ -228,7 +277,6 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
 
             o=getNextWritableOp();
           }
-          toWrite += bytesToCopy;
         }
       }
       getWbuf().flip();
@@ -427,6 +475,24 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
    */
   public final ByteBuffer getWbuf() {
     return wbuf;
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see net.spy.memcached.MemcachedNode#doTlsHandshake()
+   */
+  public final boolean doTlsHandshake(long timeoutInMillis) throws IOException {
+    return tlsConnectionHandler.doTlsHandshake(timeoutInMillis);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see net.spy.memcached.MemcachedNode#decryptNextTLSDataRecord()
+   */
+  public final ByteBuffer decryptNextTLSDataRecord(ByteBuffer rbuf) throws IOException {
+    return tlsConnectionHandler.decryptNextTLSDataRecord(rbuf);
   }
 
   /*

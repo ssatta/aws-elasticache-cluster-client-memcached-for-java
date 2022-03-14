@@ -1159,6 +1159,11 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
     }
   }
 
+  @Test
+  public void testCertificateRefresh() throws Exception {
+    assertFalse(client.refreshCertificate());
+  }
+
   private static class TestTranscoder implements Transcoder<String> {
     private static final int FLAGS = 238885206;
 

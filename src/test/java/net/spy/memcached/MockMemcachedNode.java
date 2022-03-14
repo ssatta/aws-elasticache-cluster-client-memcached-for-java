@@ -98,7 +98,7 @@ public class MockMemcachedNode implements MemcachedNode {
     // noop
   }
 
-  public void fillWriteBuffer(boolean optimizeGets) {
+  public void fillWriteBuffer(boolean optimizeGets) throws IOException {
     // noop
   }
 
@@ -147,6 +147,14 @@ public class MockMemcachedNode implements MemcachedNode {
   }
 
   public ByteBuffer getWbuf() {
+    return null;
+  }
+
+  public boolean doTlsHandshake(long timeoutInMillis) throws IOException {
+    return false;
+  }
+
+  public ByteBuffer decryptNextTLSDataRecord(ByteBuffer rbuf) throws IOException {
     return null;
   }
 

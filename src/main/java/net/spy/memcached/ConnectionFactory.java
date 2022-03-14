@@ -43,6 +43,8 @@ import net.spy.memcached.metrics.MetricType;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.transcoders.Transcoder;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Factory for creating instances of MemcachedConnection. This is used to
  * provide more fine-grained configuration of connections.
@@ -218,4 +220,25 @@ public interface ConnectionFactory {
    * @return the time in milliseconds.
    */
   long getAuthWaitTime();
+  
+  /**
+   * Get SSLContext for TLS connections usage.
+   *
+   * @return the SSLContext for TLS connections, null for non-TLS connections.
+   */
+  SSLContext getSSLContext();
+
+  /**
+   * Get hostname for TLS hostname verification.
+   *
+   * @return hostname for TLS hostname verification, null if TLS hostname verification disabled.
+   */
+  String getHostnameForTlsVerification();
+  
+  /**
+   * Returns whether or not hostname verification is not required for TLS connection.
+   *
+   * @return false if require hostname verification, true if not require hostname verification.
+   */
+  boolean skipTlsHostnameVerification();
 }

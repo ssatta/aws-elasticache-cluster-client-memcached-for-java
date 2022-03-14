@@ -2842,6 +2842,44 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return flush(-1);
   }
 
+  /**
+   * Refresh the TLS certificate on all memcached nodes for the current client
+   * @return true if the refresh succeeded, and false if error reply was received from any server
+   * @throws OperationTimeoutException if the global operation timeout is exceeded
+   */
+  @Override
+  public boolean refreshCertificate() {
+    final AtomicReference<Boolean> success = new AtomicReference<Boolean>(Boolean.TRUE);
+    CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
+      @Override
+      public Operation newOp(final MemcachedNode n, final CountDownLatch latch) {
+        final SocketAddress sa = n.getSocketAddress();
+        return opFact.refreshCertificate(new OperationCallback() {
+          @Override
+          public void receivedStatus(OperationStatus status) {
+            if (!status.isSuccess()) {
+              getLogger().warn("Unsuccessful certificate refresh: %s", status);
+              success.set(Boolean.FALSE);
+            }
+          }
+
+          @Override
+          public void complete() {
+            latch.countDown();
+          }
+        });
+      }
+    });
+    try {
+      if(!blatch.await(operationTimeout, TimeUnit.MILLISECONDS)) {
+        throw new OperationTimeoutException("Certificate refresh timed out");
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Interrupted waiting for certificate refresh", e);
+    }
+    return success.get();
+  }
+
   @Override
   public Set<String> listSaslMechanisms() {
     final ConcurrentMap<String, String> rv =

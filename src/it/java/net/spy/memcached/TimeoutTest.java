@@ -152,4 +152,13 @@ public void tearDown() throws Exception {
       }
     });
   }
+
+  @Test
+  public void testCertificateRefreshTimeout() {
+    tryTimeout("testCertificateRefresh", new Runnable() {
+      public void run() {
+        client.refreshCertificate();
+      }
+    });
+  }
 }
