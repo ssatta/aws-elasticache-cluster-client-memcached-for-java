@@ -100,13 +100,7 @@ public class TLSConnectionHandler {
     // Set the start time before starting TLS handshake.
     long startTimeDoTlsHandshake = System.nanoTime();
     
-    try {
-      sslEngine.beginHandshake();
-    } catch (SSLException sslException) {
-      log.error("A problem was encountered while signaling the SSLEngine to begin a new handshake", sslException);
-    } catch (IllegalStateException e){
-      log.error("Client/server mode has not yet been set", e);
-    }
+    sslEngine.beginHandshake();
 
     SSLEngineResult result;
     handshakeStatus = sslEngine.getHandshakeStatus();
@@ -137,7 +131,7 @@ public class TLSConnectionHandler {
             peerNetData.compact(); 
             handshakeStatus = result.getHandshakeStatus();
           } catch (SSLException sslException) {
-            log.error("A problem that caused the SSLEngine to abort", sslException);
+            log.debug("A problem that caused the SSLEngine to abort", sslException);
             sslEngine.closeOutbound();
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
@@ -157,7 +151,7 @@ public class TLSConnectionHandler {
             result = sslEngine.wrap(myAppData, myNetData);
             handshakeStatus = result.getHandshakeStatus();
           } catch (SSLException sslException) {
-            log.error("Cannot process the data through SSLEngine. Will close the connection", sslException);
+            log.debug("Cannot process the data through SSLEngine. Will close the connection", sslException);
             sslEngine.closeOutbound();
             handshakeStatus = sslEngine.getHandshakeStatus();
             break;
@@ -178,7 +172,6 @@ public class TLSConnectionHandler {
       }
     }
 
-    log.info("SSL handshake completed with status code " + handshakeStatus.toString());
     if (handshakeStatus == SSLEngineResult.HandshakeStatus.FINISHED) {
       peerNetData.compact();
       return true;
