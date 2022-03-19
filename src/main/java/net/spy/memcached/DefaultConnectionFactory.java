@@ -54,6 +54,8 @@ import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.SerializingTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Default implementation of ConnectionFactory.
  *
@@ -141,6 +143,10 @@ public class DefaultConnectionFactory extends SpyObject implements
    * The ExecutorService in which the listener callbacks will be executed.
    */
   private ExecutorService executorService;
+
+  private SSLContext sslContext;
+  private String hostnameForTlsVerification;
+  private boolean skipTlsHostnameVerification;
 
   /**
    *Construct a DefaultConnectionFactory with the given parameters.
@@ -474,6 +480,27 @@ public class DefaultConnectionFactory extends SpyObject implements
     return DEFAULT_MAX_TIMEOUTEXCEPTION_THRESHOLD;
   }
 
+  /**
+   * Get SSLContext for TLS connections usage.
+   */
+  public SSLContext getSSLContext() {
+    return sslContext;
+  }
+
+  /**
+   * Get hostname for hostname verification.
+   */
+  public String getHostnameForTlsVerification() {
+    return hostnameForTlsVerification;
+  }
+
+  /**
+   * Returns whether or not hostname verification is not required for TLS connection (default to false).
+   */
+  public boolean skipTlsHostnameVerification() {
+    return skipTlsHostnameVerification;
+  }
+
   @Override
   public MetricType enableMetrics() {
     String metricType = System.getProperty("net.spy.metrics.type");
@@ -514,6 +541,6 @@ public class DefaultConnectionFactory extends SpyObject implements
       + getReadBufSize() + ", Transcoder: " + getDefaultTranscoder()
       + ", Operation Factory: " + getOperationFactory() + " isDaemon: "
       + isDaemon() + ", Optimized: " + shouldOptimize() + ", Using Nagle: "
-      + useNagleAlgorithm() + ", KeepAlive: " + getKeepAlive() + ", ConnectionFactory: " + getName();
+      + useNagleAlgorithm() + ", KeepAlive: " + getKeepAlive() + ", SSLContext: " + getSSLContext() + ", ConnectionFactory: " + getName();
   }
 }

@@ -68,7 +68,7 @@ public class MemcachedNodeROImpl implements MemcachedNode {
     throw new UnsupportedOperationException();
   }
 
-  public void fillWriteBuffer(boolean optimizeGets) {
+  public void fillWriteBuffer(boolean optimizeGets) throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -118,6 +118,14 @@ public class MemcachedNodeROImpl implements MemcachedNode {
   
   public void setNodeEndPoint(NodeEndPoint endPoint){
     root.setNodeEndPoint(endPoint);
+  }
+
+  public boolean doTlsHandshake(long timeoutInMillis) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  public ByteBuffer decryptNextTLSDataRecord(ByteBuffer rbuf) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   public ByteBuffer getWbuf() {

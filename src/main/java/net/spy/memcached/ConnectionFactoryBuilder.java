@@ -43,6 +43,8 @@ import net.spy.memcached.protocol.ascii.AsciiOperationFactory;
 import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.Transcoder;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Builder for more easily configuring a ConnectionFactory.
  */
@@ -85,6 +87,10 @@ public class ConnectionFactoryBuilder {
   protected ExecutorService executorService = null;
   protected long authWaitTime = DefaultConnectionFactory.DEFAULT_AUTH_WAIT_TIME;
 
+  protected SSLContext sslContext;
+  protected String hostnameForTlsVerification;
+  protected boolean skipTlsHostnameVerification;
+
   /**
    * Set the operation queue factory.
    */
@@ -112,6 +118,9 @@ public class ConnectionFactoryBuilder {
     setEnableMetrics(cf.enableMetrics());
     setListenerExecutorService(cf.getListenerExecutorService());
     setAuthWaitTime(cf.getAuthWaitTime());
+    setSSLContext(cf.getSSLContext());
+    setHostnameForTlsVerification(cf.getHostnameForTlsVerification());
+    setSkipTlsHostnameVerification(cf.skipTlsHostnameVerification());
   }
 
   /**
@@ -290,6 +299,30 @@ public class ConnectionFactoryBuilder {
   }
 
   /**
+   * Set SSLContext for TLS connections usage.
+   */
+  public ConnectionFactoryBuilder setSSLContext(SSLContext sslContext) {
+    this.sslContext = sslContext;
+    return this;
+  }
+
+  /**
+   * Set hostname for TLS hostname verification.
+   */
+  public ConnectionFactoryBuilder setHostnameForTlsVerification(String hostnameForTlsVerification) {
+    this.hostnameForTlsVerification = hostnameForTlsVerification;
+    return this;
+  }
+
+  /**
+   * Set skipping hostname verification status (default to false).
+   */
+  public ConnectionFactoryBuilder setSkipTlsHostnameVerification(boolean skipTlsHostnameVerification) {
+    this.skipTlsHostnameVerification = skipTlsHostnameVerification;
+    return this;
+  }
+
+  /**
    * Set the maximum timeout exception threshold.
    */
   public ConnectionFactoryBuilder setTimeoutExceptionThreshold(int to) {
@@ -448,6 +481,21 @@ public class ConnectionFactoryBuilder {
       @Override
       public AuthDescriptor getAuthDescriptor() {
         return authDescriptor;
+      }
+
+      @Override
+      public SSLContext getSSLContext() {
+        return sslContext;
+      }
+
+      @Override
+      public String getHostnameForTlsVerification() {
+        return hostnameForTlsVerification;
+      }
+
+      @Override
+      public boolean skipTlsHostnameVerification() {
+        return skipTlsHostnameVerification;
       }
 
       @Override

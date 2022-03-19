@@ -69,7 +69,7 @@ public interface MemcachedNode {
    * @param optimizeGets if true, combine sequential gets into a single
    *          multi-key get
    */
-  void fillWriteBuffer(boolean optimizeGets);
+  void fillWriteBuffer(boolean optimizeGets) throws IOException;
 
   /**
    * Transition the current write item into a read state.
@@ -136,6 +136,20 @@ public interface MemcachedNode {
    * Get the buffer used for writing data to this node.
    */
   ByteBuffer getWbuf();
+
+  /**
+   * Do handshake for connecting to this node when TLS enabled.
+   * 
+   * @retrurn true if handshake is successful, false if handshake is unsuccessful.
+   */
+  boolean doTlsHandshake(long timeoutInMillis) throws IOException;
+
+  /**
+   * Convert the encrypted data record that received from this node to plain text data.
+   * 
+   * @return buffer contains plain text data.
+   */
+  ByteBuffer decryptNextTLSDataRecord(ByteBuffer rbuf) throws IOException;
 
   /**
    * Get the SocketAddress of the server to which this node is connected.

@@ -128,6 +128,10 @@ public class AsciiOperationFactory extends BaseOperationFactory {
         + "for ASCII protocol");
   }
 
+  public Operation refreshCertificate(OperationCallback cb) {
+    return new RefreshCertOperationImpl(cb);
+  }
+
   public GetConfigOperation getConfig(ConfigurationType type, GetConfigOperation.Callback cb) {
     return new GetConfigOperationImpl(type, cb);
   }

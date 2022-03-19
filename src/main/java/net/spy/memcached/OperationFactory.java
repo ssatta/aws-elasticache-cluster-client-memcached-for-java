@@ -288,6 +288,13 @@ public interface OperationFactory {
   TouchOperation touch(String key, int expiration, OperationCallback cb);
 
   /**
+   * Refresh the TLS certificate
+   * @param cb The status callback
+   * @return A TLS certificate refresh operation
+   */
+  Operation refreshCertificate(OperationCallback cb);
+
+  /**
    * Get a concatenation operation.
    *
    * @param catType the type of concatenation to perform.

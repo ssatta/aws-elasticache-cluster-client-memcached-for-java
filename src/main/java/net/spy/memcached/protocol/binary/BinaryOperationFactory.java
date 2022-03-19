@@ -167,6 +167,10 @@ public class BinaryOperationFactory extends BaseOperationFactory {
     return new TouchOperationImpl(key, expiration, cb);
   }
 
+  public Operation refreshCertificate(OperationCallback cb) {
+    throw new UnsupportedOperationException("Certificate refresh is not supported in binary mode");
+  }
+
   public VersionOperation version(OperationCallback cb) {
     return new VersionOperationImpl(cb);
   }
