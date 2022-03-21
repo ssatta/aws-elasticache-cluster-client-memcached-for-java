@@ -69,6 +69,8 @@ public final class TestConfig {
   public static final String TYPE_TEST_CI = "ci";
   public static final String SERVER_BIN = "server.bin";
   public static final String SERVER_VERSION = "server.version";
+  public static final String SERVER_TYPE = "server.type";
+  public static final String SERVER_TYPE_ELASTICACHE = "elasticache";
 
   //currently server host address is always default to "127.0.0.1", disabled in build.xml
   public static final String IPV4_ADDR = System.getProperty(IPV4_PROP,
@@ -84,6 +86,7 @@ public final class TestConfig {
   public static final String MEMCACHED_NAME = "memcached";
   public static final String MEMCACHED_PATH = System.getProperty(SERVER_BIN, "/usr/bin/memcached");
   public static final String MEMCACHED_VERSION = System.getProperty(SERVER_VERSION, "1.4.24");
+  public static final String MEMCACHED_TYPE = System.getProperty(SERVER_TYPE, "oss");
 
   private ClientMode clientMode;
   private engineTypeEnum engineType;
@@ -147,6 +150,10 @@ public final class TestConfig {
 
   public static boolean isCITest() {
     return TEST_TYPE.equals(TYPE_TEST_CI);
+  }
+
+  public static boolean isElastiCacheMemcachedServer() {
+    return MEMCACHED_TYPE.equals(SERVER_TYPE_ELASTICACHE);
   }
 
 }
