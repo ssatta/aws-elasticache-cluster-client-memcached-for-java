@@ -806,7 +806,10 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
 
   @Test
   public void xtestGracefulShutdownTooSlow() throws Exception {
-    for (int i = 0; i < 10000; i++) {
+
+    // Increase the number of set commands from 10,000 to 1M to make sure 
+    // there are still bytes remaining before shutdown after timing out 1 millisecond.
+    for (int i = 0; i < 100000; i++) {
       client.set("t" + i, 10, i);
     }
     assertFalse("Weird, shut down too fast",
@@ -1096,7 +1099,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
 
   @Test
   public void testGetBulkWithCallback() throws Exception {
-    final int items = 1000;
+    final int items = 500;
     List<String> keysList = new ArrayList<String>(items);
     for (int i = 0; i < items; i++) {
       assertTrue(client.set("getBulkWithCallback" + i, 0, "content").get());
@@ -1131,7 +1134,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
   @Test
   public void testConfigCmds(){
     //This is for basic testing for the config APIs. DR mode specific tests are implemented separately.
-    if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic){
+    if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic || !TestConfig.isElastiCacheMemcachedServer()){
       return;
     }
 
@@ -1157,11 +1160,6 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
         client.delete(configKey);
         assertNull(client.get(configKey));
     }
-  }
-
-  @Test
-  public void testCertificateRefresh() throws Exception {
-    assertFalse(client.refreshCertificate());
   }
 
   private static class TestTranscoder implements Transcoder<String> {

@@ -148,6 +148,7 @@ public class ConnectionUtilLinuxImpl implements ConnectionUtil {
 	public Map<String,String> getMemcachedParams() {
 		Map<String,String> params = new HashMap<String,String>();
 		params.put("-m", "4");
+		params.put("-o", "track_sizes");
 		return params;
 	}
 

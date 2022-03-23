@@ -131,8 +131,9 @@
   <property name="server.address_v6" value="::1"/>
   <property name="server.bin" value="/usr/bin/memcached"/>
   <property name="server.port_number" value="11211"/>
-  <property name="server.version" value="1.5.16"/>
+  <property name="server.version" value="1.6.12"/>
   <property name="test.type" value="unit"/>
+  <property name="server.type" value="oss"/>
 
   <!--this is the naming policy for artifacts we want pulled down-->
   <property name="ivy.artifact.retrieve.pattern"
@@ -291,6 +292,8 @@
 
   <target name="it" depends="compile, compile-it"
       description="Run Spymemcached integration tests">
+    <var name="test.type" value="ci"/>
+    <echo message="Running integration tests"/>
     <echo>Client mode(Dynamic|Static) ${client.mode}</echo>
     <echo>Server binary ${server.bin}</echo>
     <echo>Server version ${server.version}</echo>
@@ -307,7 +310,7 @@
       <jvmarg value="-ea" />
       <sysproperty key="client.mode" value="${client.mode}"/>
       <sysproperty key="server.bin" value="${server.bin}"/>
-      <sysproperty key="server.version" value="${server.version}"/>
+      <sysproperty key="server.type" value="${server.type}"/>
       <sysproperty key="test.type" value="${test.type}"/>
       <formatter type="plain" usefile="false" />
       <classpath refid="it.classpath" />
