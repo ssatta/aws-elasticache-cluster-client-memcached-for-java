@@ -29,6 +29,7 @@ package net.spy.memcached;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.net.InetSocketAddress;
@@ -138,6 +139,15 @@ public class AsciiClientTest extends ProtocolBaseCase {
       assertTrue(false);
     } catch (UnsupportedOperationException e) {
       assertTrue(true);
+    }
+  }
+
+  @Test
+  public void testCertificateRefresh() throws Exception {
+    if (TestConfig.isTlsMode()) {
+      assertTrue(client.refreshCertificate());
+    } else {
+      assertFalse(client.refreshCertificate());
     }
   }
 

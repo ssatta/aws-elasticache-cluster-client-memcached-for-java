@@ -27,6 +27,13 @@
 
 package net.spy.memcached;
 
+import javax.net.ssl.TrustManagerFactory;
+import java.security.KeyStore;
+import javax.net.ssl.SSLContext;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.KeyStoreException;
+import java.security.KeyManagementException;
 
 /**
  * A testConfig.
@@ -71,6 +78,7 @@ public final class TestConfig {
   public static final String SERVER_VERSION = "server.version";
   public static final String SERVER_TYPE = "server.type";
   public static final String SERVER_TYPE_ELASTICACHE = "elasticache";
+  public static final String SERVER_CERT = "server.cert";
 
   //currently server host address is always default to "127.0.0.1", disabled in build.xml
   public static final String IPV4_ADDR = System.getProperty(IPV4_PROP,
@@ -87,6 +95,7 @@ public final class TestConfig {
   public static final String MEMCACHED_PATH = System.getProperty(SERVER_BIN, "/usr/bin/memcached");
   public static final String MEMCACHED_VERSION = System.getProperty(SERVER_VERSION, "1.4.24");
   public static final String MEMCACHED_TYPE = System.getProperty(SERVER_TYPE, "oss");
+  public static final String MEMCACHED_CERT = System.getProperty(SERVER_CERT, "not specified");
 
   private ClientMode clientMode;
   private engineTypeEnum engineType;
@@ -129,6 +138,31 @@ public final class TestConfig {
       return this.engineType;
   }
   
+  public SSLContext getSSLContext() {
+    SSLContext sslContext = null;
+
+    if (isTlsMode()) {
+      try {
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init((KeyStore) null);
+        
+        sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, tmf.getTrustManagers(), null);
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      } catch (KeyStoreException e) {
+        e.printStackTrace();
+      } catch (KeyManagementException e) {
+        e.printStackTrace();
+      }
+    }
+    return sslContext;
+  }
+
+  public boolean skipTlsHostnameVerification() {
+    return isTlsMode() ? true : false;
+  }
+  
   private static String resolveIpv6Addr() {
 	//currently server host address ipv6 is always default to "::1", disabled in build.xml
     String ipv6 = System.getProperty(IPV6_PROP, "::1");
@@ -154,6 +188,10 @@ public final class TestConfig {
 
   public static boolean isElastiCacheMemcachedServer() {
     return MEMCACHED_TYPE.equals(SERVER_TYPE_ELASTICACHE);
+  }
+
+  public static boolean isTlsMode() {
+    return !MEMCACHED_CERT.equals("not specified");
   }
 
 }

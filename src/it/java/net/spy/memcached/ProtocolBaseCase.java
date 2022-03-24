@@ -829,7 +829,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
   @Test
   public void testStupidlyLargeSetAndSizeOverride() throws Exception {
     Random r = new Random();
-    SerializingTranscoder st = new SerializingTranscoder(Integer.MAX_VALUE);
+    SerializingTranscoder st = new SerializingTranscoder();
 
     st.setCompressionThreshold(Integer.MAX_VALUE);
 
@@ -845,6 +845,10 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
       e.printStackTrace();
       OperationException oe = (OperationException) e.getCause();
       assertSame(OperationErrorType.SERVER, oe.getType());
+    } catch (IllegalArgumentException e) {
+      assertEquals("Cannot cache data larger than " + CachedData.MAX_SIZE
+          + " bytes " + "(you tried to cache a " + data.length
+          + " byte object)", e.getMessage());
     }
 
     // But I should still be able to do something.

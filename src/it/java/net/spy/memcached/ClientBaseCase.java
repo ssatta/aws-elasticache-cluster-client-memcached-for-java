@@ -36,6 +36,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+
 import net.spy.memcached.categories.StandardTests;
 import net.spy.memcached.config.NodeEndPoint;
 import net.spy.memcached.ops.ConfigurationType;
@@ -80,6 +82,15 @@ public abstract class ClientBaseCase {
         return 3000l;
       }
       
+      @Override
+      public SSLContext getSSLContext() {
+        return TestConfig.getInstance().getSSLContext();
+      }
+
+      @Override
+      public boolean skipTlsHostnameVerification() {
+        return TestConfig.getInstance().skipTlsHostnameVerification();
+      }   
     });
   }
 
@@ -98,7 +109,6 @@ public abstract class ClientBaseCase {
   
   @BeforeClass
   public static void setUpConfigEndpoint() throws Exception {
-    //System.out.println("Set Up config endpoint.");
     List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR
 	     + ":" + TestConfig.PORT_NUMBER);
     MemcachedClient mem_client = new MemcachedClient(addrs);
@@ -176,6 +186,9 @@ public abstract class ClientBaseCase {
   }
 
   protected boolean isMoxi() {
+    if (TestConfig.isTlsMode()){
+      return false;
+    }
     if (moxi != null) {
       return moxi.booleanValue();
     }

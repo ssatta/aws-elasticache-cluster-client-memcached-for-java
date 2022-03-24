@@ -50,10 +50,22 @@ public interface ConnectionUtil {
 	/**
 	 * Params:
 	 * username = memcached_user
-	 * memory = 4MB 
+	 * memory limit = 4MB
+	 * enable dynamic reports for 'stats sizes' command  
 	 * 
 	 * @return
 	 */
 	public Map<String,String> getMemcachedParams();
+
+	/**
+	 * Params:
+	 * username = memcached_user
+	 * memory limit = 4MB
+	 * enable dynamic reports for 'stats sizes' command
+	 * enable TLS/SSL with certificate and key
+	 * 
+	 * @return
+	 */
+	public Map<String,String> getMemcachedTlsParams();
 
 }

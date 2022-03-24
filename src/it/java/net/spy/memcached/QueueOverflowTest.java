@@ -41,6 +41,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.net.ssl.SSLContext;
+
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -103,6 +105,16 @@ public class QueueOverflowTest extends ClientBaseCase {
       @Override
       public long getOpQueueMaxBlockTime() {
         return 0;
+      }
+
+      @Override
+      public SSLContext getSSLContext() {
+        return TestConfig.getInstance().getSSLContext();
+      }
+
+      @Override
+      public boolean skipTlsHostnameVerification() {
+        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
   }

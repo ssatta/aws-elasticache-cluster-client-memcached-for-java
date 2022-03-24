@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
+import javax.net.ssl.SSLContext;
+
 import net.spy.memcached.categories.StandardTests;
 import net.spy.memcached.internal.GetFuture;
 import net.spy.memcached.internal.OperationFuture;
@@ -49,6 +51,8 @@ import net.spy.memcached.transcoders.SerializingTranscoder;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.BeforeClass;
+import org.junit.Assume;
 
 /**
  * This test assumes a binary server is running on the host specified int the
@@ -56,6 +60,11 @@ import org.junit.experimental.categories.Category;
  */
 @Category(StandardTests.class)
 public class BinaryClientTest extends ProtocolBaseCase {
+
+  @BeforeClass
+  public static void binaryClientTestNotRunInTlsMode() throws Exception {
+    Assume.assumeTrue(!TestConfig.isTlsMode());
+  }
 
   @Override
   protected void initClient() throws Exception {

@@ -39,6 +39,8 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -78,6 +80,16 @@ public class LongClientTest extends ClientBaseCase {
       @Override
       public boolean shouldOptimize() {
         return false;
+      }
+
+      @Override
+      public SSLContext getSSLContext() {
+        return TestConfig.getInstance().getSSLContext();
+      }
+
+      @Override
+      public boolean skipTlsHostnameVerification() {
+        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
 
