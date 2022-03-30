@@ -39,8 +39,6 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLContext;
-
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -59,12 +57,7 @@ public class LongClientTest extends ClientBaseCase {
   public void testParallelGet() throws Throwable {
     // Get a connection with the get optimization disabled.
     client.shutdown();
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    initClient(new ClientTestConnectionFactory() {
       @Override
       public MemcachedConnection
       createConnection(List<InetSocketAddress> addrs) throws IOException {
@@ -73,23 +66,8 @@ public class LongClientTest extends ClientBaseCase {
       }
 
       @Override
-      public long getOperationTimeout() {
-        return 15000;
-      }
-
-      @Override
       public boolean shouldOptimize() {
         return false;
-      }
-
-      @Override
-      public SSLContext getSSLContext() {
-        return TestConfig.getInstance().getSSLContext();
-      }
-
-      @Override
-      public boolean skipTlsHostnameVerification() {
-        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
 

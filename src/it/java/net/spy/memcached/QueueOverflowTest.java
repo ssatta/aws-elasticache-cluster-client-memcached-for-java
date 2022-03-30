@@ -41,8 +41,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.net.ssl.SSLContext;
-
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -64,12 +62,7 @@ public class QueueOverflowTest extends ClientBaseCase {
     // We're creating artificially constrained queues with the explicit
     // goal of overrunning them to verify the client will still be
     // functional after such conditions occur.
-    initClient(new DefaultConnectionFactory(5, 1024) {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    initClient(new ClientTestConnectionFactory(5, 1024) {
       @Override
       public MemcachedConnection
       createConnection(List<InetSocketAddress> addrs) throws IOException {
@@ -105,16 +98,6 @@ public class QueueOverflowTest extends ClientBaseCase {
       @Override
       public long getOpQueueMaxBlockTime() {
         return 0;
-      }
-
-      @Override
-      public SSLContext getSSLContext() {
-        return TestConfig.getInstance().getSSLContext();
-      }
-
-      @Override
-      public boolean skipTlsHostnameVerification() {
-        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
   }

@@ -61,37 +61,7 @@ public abstract class ClientBaseCase {
   protected Boolean moxi;
 
   protected void initClient() throws Exception {
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
-      @Override
-      public long getOperationTimeout() {
-        return 15000;
-      }
-
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
-      }
-      
-      @Override
-      public long getDynamicModePollingInterval(){
-        return 3000l;
-      }
-      
-      @Override
-      public SSLContext getSSLContext() {
-        return TestConfig.getInstance().getSSLContext();
-      }
-
-      @Override
-      public boolean skipTlsHostnameVerification() {
-        return TestConfig.getInstance().skipTlsHostnameVerification();
-      }   
-    });
+    initClient(new ClientTestConnectionFactory());
   }
 
   protected void initClient(ConnectionFactory cf) throws Exception {

@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLContext;
-
 import net.spy.memcached.categories.StandardTests;
 import net.spy.memcached.ops.ConfigurationType;
 
@@ -95,12 +93,7 @@ public class RedistributeFailureModeTest extends ClientBaseCase {
 
   @Override
   protected void initClient() throws Exception {
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    initClient(new ClientTestConnectionFactory() {
       @Override
       public FailureMode getFailureMode() {
         return FailureMode.Redistribute;
@@ -109,16 +102,6 @@ public class RedistributeFailureModeTest extends ClientBaseCase {
       @Override
       public long getOperationTimeout() {
         return 5000;
-      }
-
-      @Override
-      public SSLContext getSSLContext() {
-        return TestConfig.getInstance().getSSLContext();
-      }
-
-      @Override
-      public boolean skipTlsHostnameVerification() {
-        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
   }

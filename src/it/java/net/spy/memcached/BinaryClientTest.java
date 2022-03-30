@@ -52,7 +52,7 @@ import net.spy.memcached.transcoders.SerializingTranscoder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.BeforeClass;
-import org.junit.Assume;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * This test assumes a binary server is running on the host specified int the
@@ -62,8 +62,8 @@ import org.junit.Assume;
 public class BinaryClientTest extends ProtocolBaseCase {
 
   @BeforeClass
-  public static void binaryClientTestNotRunInTlsMode() throws Exception {
-    Assume.assumeTrue(!TestConfig.isTlsMode());
+  public static void skipBinaryClientTestInTlsMode() throws Exception {
+    assumeTrue(!TestConfig.isTlsMode());
   }
 
   @Override

@@ -30,8 +30,6 @@ package net.spy.memcached;
 
 import java.nio.ByteBuffer;
 
-import javax.net.ssl.SSLContext;
-
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -55,30 +53,10 @@ public class TimeoutNowriteTest extends ClientBaseCase {
 
   @Override
   protected void initClient() throws Exception {
-    client = new MemcachedClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    client = new MemcachedClient(new ClientTestConnectionFactory() {
       @Override
       public long getOperationTimeout() {
         return 1000; // 1 sec
-      }
-
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
-      }
-
-      @Override
-      public SSLContext getSSLContext() {
-        return TestConfig.getInstance().getSSLContext();
-      }
-
-      @Override
-      public boolean skipTlsHostnameVerification() {
-        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     }, AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":"
          + TestConfig.PORT_NUMBER));

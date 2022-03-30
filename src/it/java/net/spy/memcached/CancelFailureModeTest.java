@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.net.ssl.SSLContext;
-
 import net.spy.memcached.categories.StandardTests;
 import net.spy.memcached.ops.ConfigurationType;
 
@@ -93,25 +91,10 @@ public void tearDown() throws Exception {
 
   @Override
   protected void initClient() throws Exception {
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    initClient(new ClientTestConnectionFactory() { 
       @Override
       public FailureMode getFailureMode() {
         return FailureMode.Cancel;
-      }
-
-      @Override
-      public SSLContext getSSLContext() {
-        return TestConfig.getInstance().getSSLContext();
-      }
-
-      @Override
-      public boolean skipTlsHostnameVerification() {
-        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
   }

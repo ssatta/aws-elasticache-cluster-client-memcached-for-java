@@ -49,9 +49,9 @@ This argument is used to specify the type of your testing server. Supported opti
 
 ## Additional argument for running integration tests with TLS mode
 
-    -Dserver.cert=certificates_location_of_testing_server
+    -Dcert.folder=certificates_folder_of_testing_server
 
-This argument is used to specify the location of the certificates for starting memcached server with TLS enabled. This is mandatory if you want to run integration tests with TLS mode. 
+This argument is used to specify the folder of the 2 certificates for starting memcached server with TLS enabled. Named those 2 certificates as _private.cert_ and _public.cert_. This is mandatory if you want to run integration tests with TLS mode.
 Besides, your testing server should be built with TLS capability. See instruction: https://github.com/memcached/memcached/wiki/TLS
 
 # More Information for Amazon ElastiCache Cluster Client

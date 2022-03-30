@@ -78,7 +78,7 @@ public final class TestConfig {
   public static final String SERVER_VERSION = "server.version";
   public static final String SERVER_TYPE = "server.type";
   public static final String SERVER_TYPE_ELASTICACHE = "elasticache";
-  public static final String SERVER_CERT = "server.cert";
+  public static final String SERVER_CERT_FOLDER = "cert.folder";
 
   //currently server host address is always default to "127.0.0.1", disabled in build.xml
   public static final String IPV4_ADDR = System.getProperty(IPV4_PROP,
@@ -95,7 +95,7 @@ public final class TestConfig {
   public static final String MEMCACHED_PATH = System.getProperty(SERVER_BIN, "/usr/bin/memcached");
   public static final String MEMCACHED_VERSION = System.getProperty(SERVER_VERSION, "1.4.24");
   public static final String MEMCACHED_TYPE = System.getProperty(SERVER_TYPE, "oss");
-  public static final String MEMCACHED_CERT = System.getProperty(SERVER_CERT, "not specified");
+  public static final String MEMCACHED_CERT_FOLDER = System.getProperty(SERVER_CERT_FOLDER, "not specified");
 
   private ClientMode clientMode;
   private engineTypeEnum engineType;
@@ -191,7 +191,7 @@ public final class TestConfig {
   }
 
   public static boolean isTlsMode() {
-    return !MEMCACHED_CERT.equals("not specified");
+    return !MEMCACHED_CERT_FOLDER.equals("not specified");
   }
 
 }
