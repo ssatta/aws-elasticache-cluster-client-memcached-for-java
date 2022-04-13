@@ -33,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -52,7 +53,6 @@ import net.spy.memcached.transcoders.SerializingTranscoder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.BeforeClass;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * This test assumes a binary server is running on the host specified int the
