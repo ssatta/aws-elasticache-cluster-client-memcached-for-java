@@ -134,6 +134,7 @@
   <property name="server.version" value="1.6.12"/>
   <property name="test.type" value="unit"/>
   <property name="server.type" value="oss"/>
+  <property name="cert.folder" value="not specified"/>
 
   <!--this is the naming policy for artifacts we want pulled down-->
   <property name="ivy.artifact.retrieve.pattern"
@@ -298,6 +299,16 @@
     <echo>Server binary ${server.bin}</echo>
     <echo>Server version ${server.version}</echo>
     <echo>Test Type(unit|ci) ${test.type}</echo>
+    <if>
+      <equals arg1="${cert.folder}" arg2="not specified"/>
+      <then>
+        <echo>Servers start with TLS disabled</echo>
+      </then>
+      <else>
+        <echo>Servers start with TLS enabled</echo>
+        <echo>Certificates location ${cert.folder}</echo>
+      </else>
+    </if>
     <delete dir="${junit.dir}"/>
     <mkdir  dir="${junit.dir}/data"/>
     <junit fork="yes" timeout="3600000" failureproperty="junit.failure">
@@ -311,6 +322,7 @@
       <sysproperty key="client.mode" value="${client.mode}"/>
       <sysproperty key="server.bin" value="${server.bin}"/>
       <sysproperty key="server.type" value="${server.type}"/>
+      <sysproperty key="cert.folder" value="${cert.folder}"/>
       <sysproperty key="test.type" value="${test.type}"/>
       <formatter type="plain" usefile="false" />
       <classpath refid="it.classpath" />

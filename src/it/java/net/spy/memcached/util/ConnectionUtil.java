@@ -50,7 +50,9 @@ public interface ConnectionUtil {
 	/**
 	 * Params:
 	 * username = memcached_user
-	 * memory = 4MB 
+	 * memory limit = 4MB
+	 * enable dynamic reports for 'stats sizes' command
+	 * set certificate and key if TLS/SSL enabled  
 	 * 
 	 * @return
 	 */

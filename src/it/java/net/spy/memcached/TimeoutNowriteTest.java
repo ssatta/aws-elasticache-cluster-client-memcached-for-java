@@ -53,20 +53,10 @@ public class TimeoutNowriteTest extends ClientBaseCase {
 
   @Override
   protected void initClient() throws Exception {
-    client = new MemcachedClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    client = new MemcachedClient(new ClientTestConnectionFactory() {
       @Override
       public long getOperationTimeout() {
         return 1000; // 1 sec
-      }
-
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
       }
     }, AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":"
          + TestConfig.PORT_NUMBER));

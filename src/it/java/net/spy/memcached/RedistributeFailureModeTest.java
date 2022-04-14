@@ -93,12 +93,7 @@ public class RedistributeFailureModeTest extends ClientBaseCase {
 
   @Override
   protected void initClient() throws Exception {
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    initClient(new ClientTestConnectionFactory() {
       @Override
       public FailureMode getFailureMode() {
         return FailureMode.Redistribute;

@@ -57,22 +57,12 @@ public class LongClientTest extends ClientBaseCase {
   public void testParallelGet() throws Throwable {
     // Get a connection with the get optimization disabled.
     client.shutdown();
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    initClient(new ClientTestConnectionFactory() {
       @Override
       public MemcachedConnection
       createConnection(List<InetSocketAddress> addrs) throws IOException {
         MemcachedConnection rv = super.createConnection(addrs);
         return rv;
-      }
-
-      @Override
-      public long getOperationTimeout() {
-        return 15000;
       }
 
       @Override

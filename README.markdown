@@ -18,10 +18,12 @@ directory of the project.
 
 The latest version of Amazon ElastiCache Cluster Client supports unit tests and integration tests.
 
+## Unit Tests
 Unit tests do not require any running memcached servers, and can be run using Apache Ant by the following command:
 
     ant test
 
+## Integration Tests
 Integration tests are always run against local memcached servers. Start integration tests by the
 following command:
 
@@ -29,7 +31,7 @@ following command:
 
 **NOTE**: Integration tests will start servers with ports: 11200, 11201, 11211, 11212, 22211, 22212. The integration tests can not run if one or more of those ports are using.
 
-It has a set of command line arguments that can be used to configure your client mode and your local testing server. The arguments are listed below.
+It has a set of command line arguments that can be used to configure your client mode, your local testing server, your type of testing server, and your certificates directory (needed for TLS mode). The arguments are listed below.
 
     -Dclient.mode=memcached_client_mode
 
@@ -44,8 +46,16 @@ server binary. By default it is set to _/usr/bin/memcached_.
     -Dserver.type=type_of_testing_server
 
 This argument is used to specify the type of your testing server. Supported options are _oss_ and _elasticache_. By default it is set to _oss_.
+
+## Additional argument for running integration tests with TLS mode
+
+    -Dcert.folder=certificates_folder_of_testing_server
+
+This argument is used to specify the folder of the 2 certificates for starting memcached server with TLS enabled. Named those 2 certificates as _private.cert_ and _public.cert_. This is mandatory if you want to run integration tests with TLS mode.
+Besides, your testing server should be built with TLS capability. See instruction: https://github.com/memcached/memcached/wiki/TLS
+
 # More Information for Amazon ElastiCache Cluster Client
-Github link: https://github.com/amazonwebservices/aws-elasticache-cluster-client-memcached-for-java
+Github link: https://github.com/amazonwebservices/aws-elasticache-cluster-client-memcached-for-java.
 This repository is a fork of the spymemcached Java client for connecting to memcached (specifically the https://github.com/dustin/java-memcached-client repo).
 
 Additional changes have been made to support Amazon ElastiCache Auto Discovery. To read more about Auto Discovery, please go here: https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/AutoDiscovery.html.

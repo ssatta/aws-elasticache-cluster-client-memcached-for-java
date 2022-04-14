@@ -217,8 +217,12 @@ public class MemcachedClientConstructorTest {
   @Test
   public void testKetamaNodeLocatorAccessor() throws Exception {
     client =
-        new MemcachedClient(new KetamaConnectionFactory(),
-            AddrUtil.getAddresses(TestConfig.IPV4_ADDR
+        new MemcachedClient(new KetamaConnectionFactory(){
+          @Override
+          public ClientMode getClientMode() {
+            return TestConfig.getInstance().getClientMode();
+          }
+        }, AddrUtil.getAddresses(TestConfig.IPV4_ADDR
             + ":" + TestConfig.PORT_NUMBER));
     assertTrue(client.getNodeLocator() instanceof KetamaNodeLocator);
     assertTrue(client.getNodeLocator().getPrimary("x")

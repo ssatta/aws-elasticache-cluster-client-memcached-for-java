@@ -32,7 +32,7 @@ public class ConnectionUtilLinuxImpl implements ConnectionUtil {
 	@Override
 	public void addLocalMemcachedServer(int...ports) throws Exception {
 		for(int p: ports) {
-			addLocalMemcachedServer(TestConfig.MEMCACHED_PATH, p, getMemcachedParams());		  
+			addLocalMemcachedServer(TestConfig.MEMCACHED_PATH, p, getMemcachedParams());
 		}
 	}
 
@@ -139,7 +139,9 @@ public class ConnectionUtilLinuxImpl implements ConnectionUtil {
 	/**
 	 * Params:
 	 * username = memcached_user
-	 * memory = 4MB 
+	 * memory limit = 4MB 
+	 * enable dynamic reports for 'stats sizes' command
+	 * set certificate and key if TLS/SSL enabled
 	 * 
 	 * @return
 	 */
@@ -147,10 +149,18 @@ public class ConnectionUtilLinuxImpl implements ConnectionUtil {
 	@Override
 	public Map<String,String> getMemcachedParams() {
 		Map<String,String> params = new HashMap<String,String>();
-		params.put("-m", "4");
-		params.put("-o", "track_sizes");
+
+		if (TestConfig.isTlsMode()){
+			String publicCert = "ssl_chain_cert=" + TestConfig.MEMCACHED_CERT_FOLDER + "/public.cert";
+			String privateCert = "ssl_key=" + TestConfig.MEMCACHED_CERT_FOLDER + "/private.cert";
+			params.put("-Z -o", publicCert + "," + privateCert);
+			params.put("-m", "4");
+			params.put("-o", "track_sizes");
+		} else {
+			params.put("-m", "4");
+			params.put("-o", "track_sizes");
+		}
 		return params;
 	}
-
 
 }

@@ -36,6 +36,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+
 import net.spy.memcached.categories.StandardTests;
 import net.spy.memcached.config.NodeEndPoint;
 import net.spy.memcached.ops.ConfigurationType;
@@ -59,28 +61,7 @@ public abstract class ClientBaseCase {
   protected Boolean moxi;
 
   protected void initClient() throws Exception {
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
-      @Override
-      public long getOperationTimeout() {
-        return 15000;
-      }
-
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
-      }
-      
-      @Override
-      public long getDynamicModePollingInterval(){
-        return 3000l;
-      }
-      
-    });
+    initClient(new ClientTestConnectionFactory());
   }
 
   protected void initClient(ConnectionFactory cf) throws Exception {
@@ -98,7 +79,6 @@ public abstract class ClientBaseCase {
   
   @BeforeClass
   public static void setUpConfigEndpoint() throws Exception {
-    //System.out.println("Set Up config endpoint.");
     List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR
 	     + ":" + TestConfig.PORT_NUMBER);
     MemcachedClient mem_client = new MemcachedClient(addrs);
@@ -176,6 +156,9 @@ public abstract class ClientBaseCase {
   }
 
   protected boolean isMoxi() {
+    if (TestConfig.isTlsMode()){
+      return false;
+    }
     if (moxi != null) {
       return moxi.booleanValue();
     }
