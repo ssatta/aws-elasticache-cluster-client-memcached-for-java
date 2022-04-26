@@ -155,6 +155,12 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
       restoreClusterConfig(current_config, endpoints);
       Thread.sleep(1000); // Wait for the config to restore
     }
+
+    // Restore the server configuration for TLS enabled Dynamic mode after flush
+    if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
+      restoreClusterConfigForTLS(TestConfig.PORT_NUMBER);
+    }
+
     assertNull(client.get("test1"));
     assertNull(client.get("test2"));
     assert !client.asyncGet("test1").getStatus().isSuccess();
@@ -680,6 +686,11 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
       Thread.sleep(1000);
       restoreClusterConfig(current_config, endpoints);
       Thread.sleep(1000); // Wait for the config to restore
+    }
+
+    // Restore the server configuration for TLS enabled Dynamic mode after flush
+    if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
+      restoreClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
     assertNull(client.get("test1"));
     assertNull(client.get("test2"));

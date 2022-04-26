@@ -73,7 +73,7 @@ public void tearDown() throws Exception {
   protected void initClient(ConnectionFactory cf) throws Exception {
     if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic){
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR+ ":11212");
-      MemcachedClient staticClient = new MemcachedClient(addrs);
+      MemcachedClient staticClient = staticMemcachedClient(addrs);
       
       if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
           staticClient.setConfig(addrs.get(0), ConfigurationType.CLUSTER, dynamicModeServerList);
@@ -101,7 +101,7 @@ public void tearDown() throws Exception {
 
   @Override
   protected void flushPause() throws InterruptedException {
-    Thread.sleep(100);
+    Thread.sleep(10000);
   }
 
   @Test
