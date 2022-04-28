@@ -68,8 +68,8 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
 
   private NodeEndPoint nodeEndPoint;
   private SocketAddress socketAddress;
-  private final ByteBuffer rbuf;
-  private final ByteBuffer wbuf;
+  private ByteBuffer rbuf;
+  private ByteBuffer wbuf;
   protected final BlockingQueue<Operation> writeQ;
   private final BlockingQueue<Operation> readQ;
   private final BlockingQueue<Operation> inputQueue;
@@ -88,6 +88,8 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
   private volatile long lastReadTimestamp = System.nanoTime();
   private MemcachedConnection connection;
   private TLSConnectionHandler tlsConnectionHandler;
+  private SSLContext sslContext;
+  private int bufSize;
 
   // operation Future.get timeout counter
   private final AtomicInteger continuousTimeout = new AtomicInteger(0);
@@ -110,39 +112,16 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
     this.authWaitTime = authWaitTime;
     setChannel(c);
 
-    int tlsBufSize = 0;
-    SSLContext sslContext = fact.getSSLContext();
+    this.bufSize = bufSize;
+    sslContext = fact.getSSLContext();
     
-    // Initialize SSLEngine and TLSConnectionHandler for TLS connection
-    if (sslContext != null) {
-      SSLEngine sslEngine;
-      if (!fact.skipTlsHostnameVerification() && fact.getHostnameForTlsVerification() == null){
-        throw new IllegalArgumentException("Please specify hostname for TLS verification or explicitly skip hostname verification.");
-      }
-      if (fact.getHostnameForTlsVerification() != null) {
-        // Configure SSLParameters when TLS/SSL hostname verification is enabled.
-        sslEngine = sslContext.createSSLEngine(fact.getHostnameForTlsVerification(), ((InetSocketAddress) sa).getPort());
-        SSLParameters sslParams = sslEngine.getSSLParameters();
-        sslParams.setEndpointIdentificationAlgorithm("HTTPS");
-        sslEngine.setSSLParameters(sslParams);
-      } else {
-        sslEngine = sslContext.createSSLEngine();
-      }
-      sslEngine.setUseClientMode(true);
-      tlsConnectionHandler = new TLSConnectionHandler(c, sslEngine);
-      tlsBufSize = sslEngine.getSession().getPacketBufferSize();
+    if (sslContext == null){
+      // Allocate rbuf and wbuf size for non-TLS connections
+      rbuf = ByteBuffer.allocateDirect(bufSize);
+      wbuf = ByteBuffer.allocateDirect(bufSize);
+  
+      getWbuf().clear();
     }
-    
-    // Since these buffers are allocated rarely (only on client creation
-    // or reconfigure), and are passed to Channel.read() and Channel.write(),
-    // use direct buffers to avoid
-    //   http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6214569
-    // Dynamic allocate rbuf and wbuf size for TLS connections and non-TLS connections.
-    int rwBufSize = Math.max(bufSize, tlsBufSize);
-    rbuf = ByteBuffer.allocateDirect(rwBufSize);
-    wbuf = ByteBuffer.allocateDirect(rwBufSize);
-
-    getWbuf().clear();
     readQ = rq;
     writeQ = wq;
     inputQueue = iq;
@@ -483,6 +462,31 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
    * @see net.spy.memcached.MemcachedNode#doTlsHandshake()
    */
   public final boolean doTlsHandshake(long timeoutInMillis) throws IOException {
+      // Initialize SSLEngine and TLSConnectionHandler for TLS connection
+      if (sslContext != null) {
+        int tlsBufSize = 0;
+        SSLEngine sslEngine;
+        if (!connectionFactory.skipTlsHostnameVerification() && connectionFactory.getHostnameForTlsVerification() == null){
+          throw new IllegalArgumentException("Please specify hostname for TLS verification or explicitly skip hostname verification.");
+        }
+        if (connectionFactory.getHostnameForTlsVerification() != null) {
+          // Configure SSLParameters when TLS/SSL hostname verification is enabled.
+          sslEngine = sslContext.createSSLEngine(connectionFactory.getHostnameForTlsVerification(), ((InetSocketAddress) socketAddress).getPort());
+          SSLParameters sslParams = sslEngine.getSSLParameters();
+          sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+          sslEngine.setSSLParameters(sslParams);
+        } else {
+          sslEngine = sslContext.createSSLEngine();
+        }
+        sslEngine.setUseClientMode(true);
+        tlsConnectionHandler = new TLSConnectionHandler(channel, sslEngine);
+        tlsBufSize = sslEngine.getSession().getPacketBufferSize();
+        int rwBufSize = Math.max(bufSize, tlsBufSize);
+
+        // Allocate rbuf and wbuf size for TLS connections.
+        rbuf = ByteBuffer.allocateDirect(rwBufSize);
+        wbuf = ByteBuffer.allocateDirect(rwBufSize);
+      }
     return tlsConnectionHandler.doTlsHandshake(timeoutInMillis);
   }
 
