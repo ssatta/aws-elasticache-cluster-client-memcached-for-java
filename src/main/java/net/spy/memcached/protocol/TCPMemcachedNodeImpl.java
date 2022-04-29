@@ -88,7 +88,6 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
   private volatile long lastReadTimestamp = System.nanoTime();
   private MemcachedConnection connection;
   private TLSConnectionHandler tlsConnectionHandler;
-  private SSLContext sslContext;
   private int bufSize;
 
   // operation Future.get timeout counter
@@ -113,15 +112,11 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
     setChannel(c);
 
     this.bufSize = bufSize;
-    sslContext = fact.getSSLContext();
     
-    if (sslContext == null){
-      // Allocate rbuf and wbuf size for non-TLS connections
-      rbuf = ByteBuffer.allocateDirect(bufSize);
-      wbuf = ByteBuffer.allocateDirect(bufSize);
+    rbuf = ByteBuffer.allocateDirect(bufSize);
+    wbuf = ByteBuffer.allocateDirect(bufSize);
   
-      getWbuf().clear();
-    }
+    getWbuf().clear();
     readQ = rq;
     writeQ = wq;
     inputQueue = iq;
@@ -462,31 +457,33 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
    * @see net.spy.memcached.MemcachedNode#doTlsHandshake()
    */
   public final boolean doTlsHandshake(long timeoutInMillis) throws IOException {
-      // Initialize SSLEngine and TLSConnectionHandler for TLS connection
-      if (sslContext != null) {
-        int tlsBufSize = 0;
-        SSLEngine sslEngine;
-        if (!connectionFactory.skipTlsHostnameVerification() && connectionFactory.getHostnameForTlsVerification() == null){
-          throw new IllegalArgumentException("Please specify hostname for TLS verification or explicitly skip hostname verification.");
-        }
-        if (connectionFactory.getHostnameForTlsVerification() != null) {
-          // Configure SSLParameters when TLS/SSL hostname verification is enabled.
-          sslEngine = sslContext.createSSLEngine(connectionFactory.getHostnameForTlsVerification(), ((InetSocketAddress) socketAddress).getPort());
-          SSLParameters sslParams = sslEngine.getSSLParameters();
-          sslParams.setEndpointIdentificationAlgorithm("HTTPS");
-          sslEngine.setSSLParameters(sslParams);
-        } else {
-          sslEngine = sslContext.createSSLEngine();
-        }
-        sslEngine.setUseClientMode(true);
-        tlsConnectionHandler = new TLSConnectionHandler(channel, sslEngine);
-        tlsBufSize = sslEngine.getSession().getPacketBufferSize();
-        int rwBufSize = Math.max(bufSize, tlsBufSize);
+    // Initialize SSLEngine and TLSConnectionHandler for TLS connection
+    SSLContext sslContext = connectionFactory.getSSLContext();
+    assert sslContext != null : "Something is wrong with TLS connection mechanism";
 
-        // Allocate rbuf and wbuf size for TLS connections.
-        rbuf = ByteBuffer.allocateDirect(rwBufSize);
-        wbuf = ByteBuffer.allocateDirect(rwBufSize);
-      }
+    SSLEngine sslEngine;
+    if (!connectionFactory.skipTlsHostnameVerification() && connectionFactory.getHostnameForTlsVerification() == null){
+      throw new IllegalArgumentException("Please specify hostname for TLS verification or explicitly skip hostname verification.");
+    }
+    if (connectionFactory.getHostnameForTlsVerification() != null) {
+      // Configure SSLParameters when TLS/SSL hostname verification is enabled.
+      sslEngine = sslContext.createSSLEngine(connectionFactory.getHostnameForTlsVerification(), ((InetSocketAddress) socketAddress).getPort());
+      SSLParameters sslParams = sslEngine.getSSLParameters();
+      sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+      sslEngine.setSSLParameters(sslParams);
+    } else {
+      sslEngine = sslContext.createSSLEngine();
+    }
+    sslEngine.setUseClientMode(true);
+    tlsConnectionHandler = new TLSConnectionHandler(channel, sslEngine);
+    
+    int tlsBufSize = sslEngine.getSession().getPacketBufferSize();
+    if (bufSize < tlsBufSize) {
+      // Allocate rbuf and wbuf size for TLS connections
+      rbuf = ByteBuffer.allocateDirect(tlsBufSize);
+      wbuf = ByteBuffer.allocateDirect(tlsBufSize);
+    }
+
     return tlsConnectionHandler.doTlsHandshake(timeoutInMillis);
   }
 
