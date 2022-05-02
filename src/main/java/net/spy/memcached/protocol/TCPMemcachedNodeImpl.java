@@ -459,7 +459,7 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
   public final boolean doTlsHandshake(long timeoutInMillis) throws IOException {
     // Initialize SSLEngine and TLSConnectionHandler for TLS connection
     SSLContext sslContext = connectionFactory.getSSLContext();
-    assert sslContext != null : "Something is wrong with TLS connection mechanism";
+    assert sslContext != null : "SSLContext should be present in connectionFactory for TLS connection";
 
     SSLEngine sslEngine;
     if (!connectionFactory.skipTlsHostnameVerification() && connectionFactory.getHostnameForTlsVerification() == null){
@@ -482,6 +482,7 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
       // Allocate rbuf and wbuf size for TLS connections
       rbuf = ByteBuffer.allocateDirect(tlsBufSize);
       wbuf = ByteBuffer.allocateDirect(tlsBufSize);
+      bufSize = tlsBufSize;
     }
 
     return tlsConnectionHandler.doTlsHandshake(timeoutInMillis);
