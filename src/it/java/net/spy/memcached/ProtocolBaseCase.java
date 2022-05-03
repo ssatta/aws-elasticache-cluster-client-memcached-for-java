@@ -158,7 +158,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
 
     // Restore the server configuration for TLS enabled Dynamic mode after flush
     if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
-      restoreClusterConfigForTLS(TestConfig.PORT_NUMBER);
+      setClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
 
     assertNull(client.get("test1"));
@@ -690,7 +690,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
 
     // Restore the server configuration for TLS enabled Dynamic mode after flush
     if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
-      restoreClusterConfigForTLS(TestConfig.PORT_NUMBER);
+      setClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
     assertNull(client.get("test1"));
     assertNull(client.get("test2"));
@@ -835,8 +835,6 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
 
   @Test
   public void testStupidlyLargeSetAndSizeOverride() throws Exception {
-    // Skip this test in TLS mode, will follow up later
-    assumeTrue(!TestConfig.isTlsMode());
     Random r = new Random();
     SerializingTranscoder st = new SerializingTranscoder(Integer.MAX_VALUE);
 

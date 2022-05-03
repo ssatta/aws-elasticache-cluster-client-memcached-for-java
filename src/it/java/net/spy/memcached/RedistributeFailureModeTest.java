@@ -77,7 +77,7 @@ public class RedistributeFailureModeTest extends ClientBaseCase {
   protected void initClient(ConnectionFactory cf) throws Exception {
     if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic){
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR+ ":11212");
-      MemcachedClient staticClient = staticMemcachedClient(addrs);
+      MemcachedClient staticClient = ClientBaseCase.staticMemcachedClient(addrs);
       
       if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
           staticClient.setConfig(addrs.get(0), ConfigurationType.CLUSTER, dynamicModeServerList);
@@ -116,10 +116,6 @@ public class RedistributeFailureModeTest extends ClientBaseCase {
     Collection<Future<Boolean>> futures = new ArrayList<Future<Boolean>>();
     Collection<String> keys = new ArrayList<String>();
     Thread.sleep(100);
-    
-    if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
-      restoreClusterConfigForTLS(11212);
-    }
 
     for (int i = 0; i < 100; i++) {
       String key = "k" + i;

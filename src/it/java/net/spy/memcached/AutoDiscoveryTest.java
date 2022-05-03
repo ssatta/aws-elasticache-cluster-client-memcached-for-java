@@ -19,7 +19,6 @@ import net.spy.memcached.ops.ConfigurationType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import static org.junit.Assume.assumeTrue;
 
 @Category(StandardTests.class)
 public class AutoDiscoveryTest {
@@ -37,7 +36,7 @@ public class AutoDiscoveryTest {
       
       @Override
       public long getOperationTimeout() {
-        return 500;
+        return 50;
       }
 
       @Override
@@ -135,7 +134,6 @@ public class AutoDiscoveryTest {
   
   @Test
   public void replaceNodeTest() throws IOException, InterruptedException{
-    assumeTrue(!TestConfig.isTlsMode());
     List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22211");
     MemcachedClient staticClient = newStaticClient(addrs);
     if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
@@ -223,14 +221,6 @@ public class AutoDiscoveryTest {
   }
 
   private MemcachedClient newStaticClient(List<InetSocketAddress> addrs) throws IOException {
-    if (TestConfig.isTlsMode()){
-      return new MemcachedClient(new ClientTestConnectionFactory() { 
-        @Override
-        public ClientMode getClientMode() {
-          return ClientMode.Static;
-        }
-      }, addrs);
-    }
-    return new MemcachedClient(addrs);
+    return ClientBaseCase.staticMemcachedClient(addrs);
   }
 }

@@ -89,7 +89,7 @@ public abstract class ClientBaseCase {
   @Before
   public void setUp() throws Exception {
     if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
-      restoreClusterConfigForTLS(TestConfig.PORT_NUMBER);
+      setClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
     initClient();
   }
@@ -143,13 +143,8 @@ public abstract class ClientBaseCase {
 	if(!endpoints.isEmpty() && config != null) {
 	  ArrayList<MemcachedClient> clients = new ArrayList<MemcachedClient>();
       for (NodeEndPoint endpoint : endpoints) {
-        MemcachedClient currentClient;
-        if (!TestConfig.isTlsMode()){
-          currentClient = new MemcachedClient(endpoint.getInetSocketAddress());
-        } else {
-          List<InetSocketAddress> addrs = AddrUtil.getAddresses(endpoint.getIpAddress());
-          currentClient = staticMemcachedClient(addrs);
-        }
+        List<InetSocketAddress> addrs = AddrUtil.getAddresses(endpoint.getIpAddress());
+        MemcachedClient currentClient = staticMemcachedClient(addrs);
         currentClient.set(ConfigurationType.CLUSTER.getValueWithNameSpace(), 0, config);
         clients.add(currentClient);
       }
@@ -160,7 +155,7 @@ public abstract class ClientBaseCase {
 	}
   }
 
-  protected void restoreClusterConfigForTLS(int portNumber) throws Exception {
+  protected void setClusterConfigForTLS(int portNumber) throws Exception {
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR
       + ":" + portNumber);
 
@@ -174,13 +169,16 @@ public abstract class ClientBaseCase {
       Thread.sleep(1000); // wait for all configurations to apply
   }
 
-  protected MemcachedClient staticMemcachedClient(List<InetSocketAddress> addrs) throws IOException {
-    return new MemcachedClient(new ClientTestConnectionFactory() { 
-      @Override
-      public ClientMode getClientMode() {
-        return ClientMode.Static;
-      }
-    }, addrs);
+  protected static MemcachedClient staticMemcachedClient(List<InetSocketAddress> addrs) throws IOException {
+    if (TestConfig.isTlsMode()){
+      return new MemcachedClient(new ClientTestConnectionFactory() { 
+        @Override
+        public ClientMode getClientMode() {
+          return ClientMode.Static;
+        }
+      }, addrs);
+    }
+    return new MemcachedClient(addrs);
   }
 
   protected void flushPause() throws InterruptedException {
@@ -188,9 +186,6 @@ public abstract class ClientBaseCase {
   }
 
   protected boolean isMoxi() {
-    if (TestConfig.isTlsMode()){
-      return false;
-    }
     if (moxi != null) {
       return moxi.booleanValue();
     }

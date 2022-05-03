@@ -70,7 +70,7 @@ public void tearDown() throws Exception {
     };
     if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic){
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR+ ":11212");
-      MemcachedClient staticClient = staticMemcachedClient(addrs);
+      MemcachedClient staticClient = ClientBaseCase.staticMemcachedClient(addrs);
       
       if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
           staticClient.setConfig(addrs.get(0), ConfigurationType.CLUSTER, "1\n" + "localhost.localdomain|" + TestConfig.IPV4_ADDR + "|" + "11212");
