@@ -31,6 +31,8 @@ import net.spy.memcached.categories.StandardTests;
 
 import org.junit.experimental.categories.Category;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Test cancellation in the binary protocol.
  */
@@ -58,6 +60,16 @@ public class BinaryCancellationTest extends CancellationBaseCase {
       @Override
       public long getDynamicModePollingInterval(){
         return 3000l;
+      }
+
+      @Override
+      public SSLContext getSSLContext() {
+        return TestConfig.getInstance().getSSLContext();
+      }
+  
+      @Override
+      public boolean skipTlsHostnameVerification() {
+        return TestConfig.getInstance().skipTlsHostnameVerification();
       }
     });
   }

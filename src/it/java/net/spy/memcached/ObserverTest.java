@@ -75,12 +75,7 @@ public class ObserverTest extends ClientBaseCase {
     };
 
     // Get a new client
-    initClient(new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-
+    initClient(new ClientTestConnectionFactory() {
       @Override
       public Collection<ConnectionObserver> getInitialObservers() {
         return Collections.singleton(obs);

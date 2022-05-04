@@ -52,25 +52,16 @@ public void tearDown() throws Exception {
 
   @Override
   protected void initClient() throws Exception {
-    ConnectionFactory cf = new DefaultConnectionFactory() {
-      @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
+    ConnectionFactory cf = new ClientTestConnectionFactory() {
       @Override
       public long getOperationTimeout() {
         return 20;
       }
 
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
-      }
     };
     if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic){
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR+ ":11212");
-      MemcachedClient staticClient = new MemcachedClient(addrs);
+      MemcachedClient staticClient = ClientBaseCase.staticMemcachedClient(addrs);
       
       if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
           staticClient.setConfig(addrs.get(0), ConfigurationType.CLUSTER, "1\n" + "localhost.localdomain|" + TestConfig.IPV4_ADDR + "|" + "11212");

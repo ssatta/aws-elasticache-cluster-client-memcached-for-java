@@ -37,6 +37,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+
 import net.spy.memcached.categories.StandardTests;
 
 import org.junit.Before;
@@ -142,7 +144,7 @@ public class MemcachedClientConstructorTest {
   @Test
   public void testNegativeTimeout() throws Exception {
     try {
-      client = new MemcachedClient(new DefaultConnectionFactory() {
+      client = new MemcachedClient(new ClientTestConnectionFactory() {
         @Override
         public long getOperationTimeout() {
           return -1;
@@ -158,7 +160,7 @@ public class MemcachedClientConstructorTest {
   @Test
   public void testZeroTimeout() throws Exception {
     try {
-      client = new MemcachedClient(new DefaultConnectionFactory() {
+      client = new MemcachedClient(new ClientTestConnectionFactory() {
         @Override
         public long getOperationTimeout() {
           return 0;
@@ -174,7 +176,7 @@ public class MemcachedClientConstructorTest {
   @Test
   public void testConnFactoryWithoutOpFactory() throws Exception {
     try {
-      client = new MemcachedClient(new DefaultConnectionFactory() {
+      client = new MemcachedClient(new ClientTestConnectionFactory() {
         @Override
         public OperationFactory getOperationFactory() {
           return null;
@@ -190,7 +192,7 @@ public class MemcachedClientConstructorTest {
   @Test
   public void testConnFactoryWithoutConns() throws Exception {
     try {
-      client = new MemcachedClient(new DefaultConnectionFactory() {
+      client = new MemcachedClient(new ClientTestConnectionFactory() {
         @Override
         public MemcachedConnection createConnection(
             List<InetSocketAddress> addrs) throws IOException {
@@ -221,6 +223,15 @@ public class MemcachedClientConstructorTest {
           @Override
           public ClientMode getClientMode() {
             return TestConfig.getInstance().getClientMode();
+          }
+          @Override
+          public SSLContext getSSLContext() {
+            return TestConfig.getInstance().getSSLContext();
+          }
+      
+          @Override
+          public boolean skipTlsHostnameVerification() {
+            return TestConfig.getInstance().skipTlsHostnameVerification();
           }
         }, AddrUtil.getAddresses(TestConfig.IPV4_ADDR
             + ":" + TestConfig.PORT_NUMBER));
