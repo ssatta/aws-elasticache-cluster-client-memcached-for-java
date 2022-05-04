@@ -157,7 +157,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
     }
 
     // Restore the server configuration for TLS enabled Dynamic mode after flush
-    if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
+    if (TestConfig.isTlsMode() && TestConfig.getInstance().getClientMode() == ClientMode.Dynamic) {
       setClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
 
@@ -689,7 +689,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
     }
 
     // Restore the server configuration for TLS enabled Dynamic mode after flush
-    if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
+    if (TestConfig.isTlsMode() && TestConfig.getInstance().getClientMode() == ClientMode.Dynamic) {
       setClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
     assertNull(client.get("test1"));

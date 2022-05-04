@@ -54,19 +54,10 @@ public void tearDown() throws Exception {
   protected void initClient() throws Exception {
     ConnectionFactory cf = new ClientTestConnectionFactory() {
       @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
-      @Override
       public long getOperationTimeout() {
         return 20;
       }
 
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
-      }
     };
     if(TestConfig.getInstance().getClientMode() == ClientMode.Dynamic){
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR+ ":11212");

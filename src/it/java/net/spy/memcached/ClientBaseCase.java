@@ -88,7 +88,7 @@ public abstract class ClientBaseCase {
   
   @Before
   public void setUp() throws Exception {
-    if (TestConfig.getInstance().getClientMode() == ClientMode.Dynamic && TestConfig.isTlsMode()) {
+    if (TestConfig.isTlsMode() && TestConfig.getInstance().getClientMode() == ClientMode.Dynamic) {
       setClusterConfigForTLS(TestConfig.PORT_NUMBER);
     }
     initClient();
@@ -159,26 +159,18 @@ public abstract class ClientBaseCase {
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR
       + ":" + portNumber);
 
-      MemcachedClient client = new MemcachedClient(new ClientTestConnectionFactory(){
-        @Override
-        public ClientMode getClientMode() {
-          return ClientMode.Static;
-        }
-      }, addrs);
+      MemcachedClient client = staticMemcachedClient(addrs);
       client.set(ConfigurationType.CLUSTER.getValueWithNameSpace(), 0, "1\n" + "localhost.localdomain|" + TestConfig.IPV4_ADDR + "|" + portNumber);
       Thread.sleep(1000); // wait for all configurations to apply
   }
 
   protected static MemcachedClient staticMemcachedClient(List<InetSocketAddress> addrs) throws IOException {
-    if (TestConfig.isTlsMode()){
-      return new MemcachedClient(new ClientTestConnectionFactory() { 
-        @Override
-        public ClientMode getClientMode() {
-          return ClientMode.Static;
-        }
-      }, addrs);
-    }
-    return new MemcachedClient(addrs);
+    return new MemcachedClient(new ClientTestConnectionFactory() { 
+      @Override
+      public ClientMode getClientMode() {
+        return ClientMode.Static;
+      }
+    }, addrs);
   }
 
   protected void flushPause() throws InterruptedException {

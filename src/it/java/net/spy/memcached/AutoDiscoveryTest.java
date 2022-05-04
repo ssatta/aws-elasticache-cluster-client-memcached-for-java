@@ -30,20 +30,10 @@ public class AutoDiscoveryTest {
   public void setUp() throws Exception {
     cf = new ClientTestConnectionFactory() {
       @Override
-      public ClientMode getClientMode() {
-        return TestConfig.getInstance().getClientMode();
-      }
-      
-      @Override
       public long getOperationTimeout() {
         return 50;
       }
 
-      @Override
-      public FailureMode getFailureMode() {
-        return FailureMode.Retry;
-      }
-      
       @Override
       public long getDynamicModePollingInterval(){
         return POLLING_INTERVAL;
@@ -54,9 +44,9 @@ public class AutoDiscoveryTest {
   @Test
   public void addNodeTest() throws IOException, InterruptedException{
     List<InetSocketAddress> addrs1 = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22211");
-    MemcachedClient staticClient1 = newStaticClient(addrs1);
+    MemcachedClient staticClient1 = ClientBaseCase.staticMemcachedClient(addrs1);
     List<InetSocketAddress> addrs2 = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22212");
-    MemcachedClient staticClient2 = newStaticClient(addrs2);
+    MemcachedClient staticClient2 = ClientBaseCase.staticMemcachedClient(addrs2);
     if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
         staticClient1.setConfig(addrs1.get(0), ConfigurationType.CLUSTER, "1\n" + "localhost.localdomain|" + TestConfig.IPV4_ADDR + "|" + "22211");
         staticClient2.setConfig(addrs2.get(0), ConfigurationType.CLUSTER, "1\n" + "localhost.localdomain|" + TestConfig.IPV4_ADDR + "|" + "22211");
@@ -94,9 +84,9 @@ public class AutoDiscoveryTest {
   @Test
   public void removeNodeTest() throws IOException, InterruptedException{
     List<InetSocketAddress> addrs1 = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22211");
-    MemcachedClient staticClient1 = newStaticClient(addrs1);
+    MemcachedClient staticClient1 = ClientBaseCase.staticMemcachedClient(addrs1);
     List<InetSocketAddress> addrs2 = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22212");
-    MemcachedClient staticClient2 = newStaticClient(addrs2);
+    MemcachedClient staticClient2 = ClientBaseCase.staticMemcachedClient(addrs2);
 
     if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
         staticClient1.setConfig(addrs1.get(0), ConfigurationType.CLUSTER, "1\n" 
@@ -135,7 +125,7 @@ public class AutoDiscoveryTest {
   @Test
   public void replaceNodeTest() throws IOException, InterruptedException{
     List<InetSocketAddress> addrs = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22211");
-    MemcachedClient staticClient = newStaticClient(addrs);
+    MemcachedClient staticClient = ClientBaseCase.staticMemcachedClient(addrs);
     if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
         staticClient.setConfig(addrs.get(0), ConfigurationType.CLUSTER, "1\n" + "localhost.localdomain|" + TestConfig.IPV4_ADDR + "|" + "22211");
     } else {
@@ -162,9 +152,9 @@ public class AutoDiscoveryTest {
   @Test
   public void staleConfigTest() throws IOException, InterruptedException{
     List<InetSocketAddress> addrs1 = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22211");
-    MemcachedClient staticClient1 = newStaticClient(addrs1);
+    MemcachedClient staticClient1 = ClientBaseCase.staticMemcachedClient(addrs1);
     List<InetSocketAddress> addrs2 = AddrUtil.getAddresses(TestConfig.IPV4_ADDR + ":22212");
-    MemcachedClient staticClient2 = newStaticClient(addrs2);
+    MemcachedClient staticClient2 = ClientBaseCase.staticMemcachedClient(addrs2);
 
     if(TestConfig.getInstance().getEngineType().isSetConfigSupported()) {
         staticClient1.setConfig(addrs1.get(0), ConfigurationType.CLUSTER, "2\n" 
@@ -220,7 +210,4 @@ public class AutoDiscoveryTest {
       return client.getAvailableNodeEndPoints().iterator().next().getIpAddress();
   }
 
-  private MemcachedClient newStaticClient(List<InetSocketAddress> addrs) throws IOException {
-    return ClientBaseCase.staticMemcachedClient(addrs);
-  }
 }
