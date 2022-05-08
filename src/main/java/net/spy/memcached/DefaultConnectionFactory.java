@@ -149,24 +149,8 @@ public class DefaultConnectionFactory extends SpyObject implements
   private boolean skipTlsHostnameVerification;
 
   /**
-   *Construct a DefaultConnectionFactory with the given parameters.
-   *
-   * @param qLen the queue length.
-   * @param bufSize the buffer size
-   * @param hash the algorithm to use for hashing
-   */
-  public DefaultConnectionFactory(int qLen, int bufSize, HashAlgorithm hash) {
-    super();
-    clientMode = ClientMode.Dynamic;
-    opQueueLen = qLen;
-    readBufSize = bufSize;
-    hashAlg = hash;
-    metrics = null;
-  }
-
-  /**
    * Construct a DefaultConnectionFactory with the given parameters.
-   *
+   * @param clientMode the client mode.
    * @param qLen the queue length.
    * @param bufSize the buffer size
    * @param hash the algorithm to use for hashing
@@ -178,6 +162,17 @@ public class DefaultConnectionFactory extends SpyObject implements
     this.readBufSize = bufSize;
     this.hashAlg = hash;
     this.metrics = null;
+  }
+
+  /**
+   * Construct a DefaultConnectionFactory with the given parameters.
+   *
+   * @param qLen the queue length.
+   * @param bufSize the buffer size
+   * @param hash the algorithm to use for hashing
+   */
+  public DefaultConnectionFactory(int qLen, int bufSize, HashAlgorithm hash) {
+    this(DEFAULT_CLIENT_MODE, qLen, bufSize, hash);
   }
 
   /**
@@ -193,7 +188,7 @@ public class DefaultConnectionFactory extends SpyObject implements
    * length, and the given read buffer size.
    */
   public DefaultConnectionFactory(int qLen, int bufSize) {
-    this(ClientMode.Dynamic, qLen, bufSize, DEFAULT_HASH);
+    this(DEFAULT_CLIENT_MODE, qLen, bufSize, DEFAULT_HASH);
   }
 
   /**
@@ -442,7 +437,9 @@ public class DefaultConnectionFactory extends SpyObject implements
    *
    * @see net.spy.memcached.ConnectionFactory#getKeepAlive()
    */
-  public boolean getKeepAlive() { return false; }
+  public boolean getKeepAlive() {
+    return false;
+  }
 
   /*
    * (non-Javadoc)

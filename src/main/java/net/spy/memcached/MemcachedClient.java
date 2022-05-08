@@ -3092,7 +3092,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   void setIsConfigurtionInitialized(boolean isConfigurationInitialized){
     this.isConfigurationInitialized = isConfigurationInitialized;
   }
-  
+
   public long getOperationTimeout() {
     return operationTimeout;
   }

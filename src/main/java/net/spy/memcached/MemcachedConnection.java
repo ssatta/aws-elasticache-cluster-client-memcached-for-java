@@ -124,9 +124,14 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
   private static final int EXCESSIVE_EMPTY = 0x1000000;
 
   /**
-   * The default wakeup delay if not overriden by a system property.
+   * The default wakeup delay if not overridden by a system property.
    */
   private static final int DEFAULT_WAKEUP_DELAY = 1000;
+
+  /**
+   * By default, do not bound the retry queue.
+   */
+  private static final int DEFAULT_RETRY_QUEUE_SIZE = -1;
 
   /**
    * If an operation gets cloned more than this ceiling, cancel it for
@@ -291,6 +296,10 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
    */
   private final boolean isTlsMode;
 
+  /**
+   * Optionally bound the retry queue if set via system property.
+   */
+  private final int retryQueueSize;
 
   /**
    * Construct a {@link MemcachedConnection}.
@@ -337,6 +346,10 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
 
     wakeupDelay = Integer.parseInt( System.getProperty("net.spy.wakeupDelay",
       Integer.toString(DEFAULT_WAKEUP_DELAY)));
+
+    retryQueueSize = Integer.parseInt(System.getProperty("net.spy.retryQueueSize",
+        Integer.toString(DEFAULT_RETRY_QUEUE_SIZE)));
+    getLogger().info("Setting retryQueueSize to " + retryQueueSize);
 
     //This MemcachedConnection constructor is used in several places. 
     //The conversion from SocketAddress to NodeEndPoint is done for backwards compatibility. 
@@ -440,7 +453,6 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
       int ops = 0;
 
       Socket socket = ch.socket();
-
       socket.setTcpNoDelay(!connectionFactory.useNagleAlgorithm());
       socket.setKeepAlive(connectionFactory.getKeepAlive());
 
@@ -516,7 +528,7 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     handleInputQueue();
     getLogger().debug("Done dealing with queue.");
 
-    long delay = 1000;
+    long delay = wakeupDelay;
     if (!reconnectQueue.isEmpty()) {
       long now = System.currentTimeMillis();
       long then = reconnectQueue.firstKey();
@@ -592,8 +604,8 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
    * Helper method for {@link #handleIO()} to handle empty select calls.
    */
   private void handleEmptySelects() {
-    getLogger().debug("No selectors ready, interrupted: "
-      + Thread.interrupted());
+    getLogger().debug("No selectors ready, interrupted: %b",
+      Thread.interrupted());
 
     if (++emptySelects > DOUBLE_CHECK_EMPTY) {
       for (SelectionKey sk : selector.keys()) {
@@ -928,18 +940,15 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
    * @param node th enode to read write from.
    * @throws IOException if an error occurs during read/write.
    */
-  private void handleReadsAndWrites(final SelectionKey sk,
-    final MemcachedNode node) throws IOException {
-    if (sk.isValid()) {
-      if (sk.isReadable()) {
-        handleReads(node);
+  private void handleReadsAndWrites(final SelectionKey sk, final MemcachedNode node) throws IOException {
+      if (sk.isValid() && sk.isReadable()) {
+          handleReads(node);
       }
-      if (sk.isWritable()) {
-        handleWrites(node);
-      }
-    }
-  }
 
+      if (sk.isValid() && sk.isWritable()) {
+          handleWrites(node);
+      }
+  }
   /**
    * Finish the connect phase and potentially verify its liveness.
    *
@@ -1122,7 +1131,7 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
       assert op == currentOp : "Expected to pop " + currentOp + " got "
         + op;
 
-      retryOps.add(currentOp);
+      retryOperation(currentOp);
       metrics.markMeter(OVERALL_RESPONSE_RETRY_METRIC);
     }
   }
@@ -1769,9 +1778,18 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
   /**
    * Add a operation to the retry queue.
    *
+   * If the retry queue size is bounded and the size of the queue is reaching
+   * that boundary, the operation is cancelled rather than added to the
+   * retry queue.
+   *
    * @param op the operation to retry.
    */
   public void retryOperation(Operation op) {
+    if (retryQueueSize >= 0 && retryOps.size() >= retryQueueSize) {
+      if (!op.isCancelled()) {
+        op.cancel();
+      }
+    }
     retryOps.add(op);
   }
 
