@@ -14,6 +14,47 @@ command:
 This will generate binary, source, and javadoc jars in the build
 directory of the project.
 
+# Configuring the client in TLS mode
+
+As memcached supports TLS since version 1.5.13, Amazon ElastiCache Cluster Client added TLS support for better security.
+
+In order to create a client in TLS mode, do the following to initialize the client with the appropriate SSLContext:
+
+    import java.security.cert.CertificateFactory;
+    import java.security.KeyStore;
+    import javax.net.ssl.SSLContext;
+    import javax.net.ssl.TrustManagerFactory;
+    import net.spy.memcached.AddrUtil;
+    import net.spy.memcached.ConnectionFactoryBuilder;
+    import net.spy.memcached.MemcachedClient;
+    public class TLSDemo {
+        public static void main(String[] args) {
+            ConnectionFactoryBuilder connectionFactoryBuilder = new ConnectionFactoryBuilder();
+            // Build SSLContext
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore) null);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), null);
+            // Create the client in TLS mode
+            connectionFactoryBuilder.setSSLContext(sslContext);
+            MemcachedClient client = new MemcachedClient(connectionFactoryBuilder.build(), AddrUtil.getAddresses("my_website.com:11211"));
+            ....
+        }
+    }
+
+To create the TLS mode client with customized TLS certificate, initialize the SSLContext as follows:
+
+    InputStream inputStream = new FileInputStream("/tmp/my_certificate");
+    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    ks.load(null);
+    ks.setCertificateEntry("cert", CertificateFactory.getInstance("X.509").generateCertificate(inputStream));
+    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    tmf.init(ks);
+    SSLContext sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(null, tmf.getTrustManagers(), null);
+
+The rest of the logic to create the client follows.
+
 # Testing
 
 The latest version of Amazon ElastiCache Cluster Client supports unit tests and integration tests.
