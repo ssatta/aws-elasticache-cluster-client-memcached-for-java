@@ -1,8 +1,8 @@
 Amazon ElastiCache Cluster Client
-Copyright (C) 2012-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright (C) 2012-2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-Derived from spymemcached 2.8.1 under the MIT license. 
- 
+Derived from spymemcached under MIT license
+
 Copyright (c) 2006-2009  Dustin Sallings
 Copyright (c) 2009-2011  Couchbase, Inc.
 
