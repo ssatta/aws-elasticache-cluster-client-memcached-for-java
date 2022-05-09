@@ -480,6 +480,7 @@
     <exec executable="git" resultproperty="err" outputproperty="result">
       <arg value="describe" />
       <arg value="--abbrev=0" />
+      <arg value="--tags" />
     </exec>
     <if>
       <equals arg1="${err}" arg2="0"/>
