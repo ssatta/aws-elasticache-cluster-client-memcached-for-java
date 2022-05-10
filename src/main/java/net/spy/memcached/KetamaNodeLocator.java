@@ -266,7 +266,7 @@ public final class KetamaNodeLocator extends SpyObject implements NodeLocator {
 
   private List<Long> ketamaNodePositionsAtIteration(MemcachedNode node, int iteration) {
       List<Long> positions = new ArrayList<Long>();
-      byte[] digest = DefaultHashAlgorithm.computeMd5(config.getKeyForNode(node, iteration));
+      byte[] digest = DefaultHashAlgorithm.computeHashDigest(config.getKeyForNode(node, iteration));
       for (int h = 0; h < 4; h++) {
           Long k = ((long) (digest[3 + h * 4] & 0xFF) << 24)
               | ((long) (digest[2 + h * 4] & 0xFF) << 16)

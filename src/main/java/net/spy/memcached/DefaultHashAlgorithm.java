@@ -68,7 +68,7 @@ public enum DefaultHashAlgorithm implements HashAlgorithm {
    */
   FNV1A_32_HASH,
   /**
-   * MD5-based hash algorithm used by ketama.
+   * SHA-384 based hash algorithm used by ketama.
    */
   KETAMA_HASH;
 
@@ -78,13 +78,13 @@ public enum DefaultHashAlgorithm implements HashAlgorithm {
   private static final long FNV_32_INIT = 2166136261L;
   private static final long FNV_32_PRIME = 16777619;
 
-  private static MessageDigest md5Digest = null;
+  private static MessageDigest msgHashDigest = null;
 
   static {
     try {
-      md5Digest = MessageDigest.getInstance("MD5");
+      msgHashDigest = MessageDigest.getInstance("SHA-384");
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("MD5 not supported", e);
+      throw new RuntimeException("SHA-384 not supported", e);
     }
   }
 
@@ -136,7 +136,7 @@ public enum DefaultHashAlgorithm implements HashAlgorithm {
       }
       break;
     case KETAMA_HASH:
-      byte[] bKey = computeMd5(k);
+      byte[] bKey = computeHashDigest(k);
       rv = ((long) (bKey[3] & 0xFF) << 24)
           | ((long) (bKey[2] & 0xFF) << 16)
           | ((long) (bKey[1] & 0xFF) << 8)
@@ -149,16 +149,16 @@ public enum DefaultHashAlgorithm implements HashAlgorithm {
   }
 
   /**
-   * Get the md5 of the given key.
+   * Get the hash digest of the given key.
    */
-  public static byte[] computeMd5(String k) {
-    MessageDigest md5;
+  public static byte[] computeHashDigest(String k) {
+    MessageDigest msgDigest;
     try {
-      md5 = (MessageDigest) md5Digest.clone();
+      msgDigest = (MessageDigest) msgHashDigest.clone();
     } catch (CloneNotSupportedException e) {
-      throw new RuntimeException("clone of MD5 not supported", e);
+      throw new RuntimeException("clone of SHA-384 not supported", e);
     }
-    md5.update(KeyUtil.getKeyBytes(k));
-    return md5.digest();
+    msgDigest.update(KeyUtil.getKeyBytes(k));
+    return msgDigest.digest();
   }
 }

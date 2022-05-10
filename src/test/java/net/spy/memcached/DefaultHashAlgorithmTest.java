@@ -131,13 +131,13 @@ public class DefaultHashAlgorithmTest extends TestCase {
   // These values came from libketama's test prog.
   public void testKetamaHash() {
     HashMap<String, Long> exp = new HashMap<String, Long>();
-    exp.put("26", 3979113294L);
-    exp.put("1404", 2065000984L);
-    exp.put("4177", 1125759251L);
-    exp.put("9315", 3302915307L);
-    exp.put("14745", 2580083742L);
-    exp.put("105106", 3986458246L);
-    exp.put("355107", 3611074310L);
+    exp.put("26", 1576085614L);
+    exp.put("1404", 3021998020L);
+    exp.put("4177", 4164869128L);
+    exp.put("9315", 276223098L);
+    exp.put("14745", 902518834L);
+    exp.put("105106", 1005351507L);
+    exp.put("355107", 2211103252L);
 
     for (Map.Entry<String, Long> me : exp.entrySet()) {
       assertHash(DefaultHashAlgorithm.KETAMA_HASH, me.getKey(),
