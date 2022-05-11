@@ -18,4 +18,9 @@ public interface ClusterConfigurationObserver extends ConfigurationObserver {
    */
   public void notifyUpdate(ClusterConfiguration clusterConfiguration);
 
+  /**
+   * Wait for the configuration change applied. This is invoked whenever the observers get notified
+   * except configuration change during the client initialization.
+   */
+  public void waitForConfigChangeApplied();
 }
