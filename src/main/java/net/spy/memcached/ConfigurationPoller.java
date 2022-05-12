@@ -177,6 +177,7 @@ public class ConfigurationPoller extends SpyThread{
           for(ClusterConfigurationObserver observer : clusterConfigObservers){
             getLogger().info("Notifying observers about configuration change.");
             observer.notifyUpdate(newClusterConfiguration);
+            observer.waitForConfigChangeApplied();
           }
           if(!client.isConfigurationInitialized()){
             client.setIsConfigurtionInitialized(true);

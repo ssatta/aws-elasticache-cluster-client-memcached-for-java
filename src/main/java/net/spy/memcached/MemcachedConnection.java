@@ -257,6 +257,7 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
   //of node list to the locator object.
   protected final ReentrantLock conditionLock;
   protected final Condition nodeUpdateCondition;
+  protected boolean isInitialClusterConfigApplied;
   
   /**
    * Holds all nodes that are scheduled for shutdown.
@@ -334,6 +335,7 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     listenerExecutorService = f.getListenerExecutorService();
     this.bufSize = bufSize;
     this.connectionFactory = f;
+    isInitialClusterConfigApplied = false;
 
     isTlsMode = f.getSSLContext() != null;
 
@@ -373,7 +375,30 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     setDaemon(f.isDaemon());
     start();
   }
-  
+
+  public void waitForInitialConfigApplied() {
+    conditionLock.lock();
+    try {
+      if (!isInitialClusterConfigApplied) {
+          nodeUpdateCondition.await();
+      }
+    } catch (InterruptedException e) {
+    } finally {
+      conditionLock.unlock();
+    }
+  }
+
+  @Override
+  public void waitForConfigChangeApplied() {
+    conditionLock.lock();
+    try {
+      nodeUpdateCondition.await(50L, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+    } finally {
+      conditionLock.unlock();
+    }
+  }
+
   @Override
   public void notifyUpdate(ClusterConfiguration clusterConfiguration){
     if (shutDown) {
@@ -397,15 +422,6 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     
     Selector s = selector.wakeup();
     assert s == selector : "Wakeup returned the wrong selector.";
-    
-    conditionLock.lock();
-    try{
-      try {
-        nodeUpdateCondition.await(50L, TimeUnit.SECONDS);
-      } catch (InterruptedException e) { }
-    }finally{
-      conditionLock.unlock();
-    }
   }
 
   /**
@@ -731,7 +747,7 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
       }
       
       locator.updateLocator(newNodes);
-      
+
     }catch(Exception e){
       getLogger().error("Error encountered while updating the node list. Adding back to endpoint list for reattempt.", e);
       //Error occurred during node update. Add back the endpoints list to newEndPoints
@@ -745,10 +761,12 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
         lockForNodeUpdates.unlock();
       }
     }
-  
     conditionLock.lock();
+    if (!isInitialClusterConfigApplied) {
+      isInitialClusterConfigApplied = true;
+    }
     try {
-        nodeUpdateCondition.signal();
+      nodeUpdateCondition.signal();
     }finally{
       conditionLock.unlock();
     }

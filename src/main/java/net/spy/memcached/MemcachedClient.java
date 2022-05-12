@@ -332,6 +332,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
         
         //Initialize client with the actual set of endpoints.
         mconn.notifyUpdate(clusterConfiguration);
+        mconn.waitForInitialConfigApplied();
         isConfigurationInitialized = true;
       }
     }catch(OperationTimeoutException e){
@@ -348,7 +349,6 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
 
     mconn = cf.createConnection(addrs);
     assert mconn != null : "Connection factory failed to make a connection";
-
   }
   
   public NodeEndPoint getConfigurationNode(){
