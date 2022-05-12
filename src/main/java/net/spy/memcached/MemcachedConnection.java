@@ -253,8 +253,11 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
   //objects across threads which is more risk prone for concurrency issues. 
   protected final ReentrantLock lockForNodeUpdates;
   
-  //Lock for managing condition variable for poller thread to wait for successful update
-  //of node list to the locator object.
+  // Lock for managing synchronization conditions for poller thread and the constructor thread to wait for
+  // successful update of node list to the locator object after retrieving the new cluster configuration.
+  // The client constructor thread waits for connection thread to update the node list if needed during initialization.
+  // The configuration poller thread runs every minutes, so it waits for up to 50 seconds for the
+  // connection thread to update the node list with the new configuration at run-time.
   protected final ReentrantLock conditionLock;
   protected final Condition nodeUpdateCondition;
   protected boolean isInitialClusterConfigApplied;
