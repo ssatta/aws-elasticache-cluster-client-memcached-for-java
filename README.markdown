@@ -28,7 +28,7 @@ In order to create a client in TLS mode, do the following to initialize the clie
     import net.spy.memcached.ConnectionFactoryBuilder;
     import net.spy.memcached.MemcachedClient;
     public class TLSDemo {
-        public static void main(String[] args) {
+        public static void main(String[] args) throws Exception {
             ConnectionFactoryBuilder connectionFactoryBuilder = new ConnectionFactoryBuilder();
             // Build SSLContext
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -38,7 +38,8 @@ In order to create a client in TLS mode, do the following to initialize the clie
             // Create the client in TLS mode
             connectionFactoryBuilder.setSSLContext(sslContext);
             MemcachedClient client = new MemcachedClient(connectionFactoryBuilder.build(), AddrUtil.getAddresses("my_website.com:11211"));
-            ....
+            // Store a data item
+            client.set("theKey", 3600, "This is the data value");
         }
     }
 
