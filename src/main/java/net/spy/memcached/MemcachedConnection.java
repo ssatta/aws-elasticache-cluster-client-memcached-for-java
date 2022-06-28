@@ -63,6 +63,7 @@ import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.UnresolvedAddressException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -491,6 +492,9 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
             : "Not connected, and not wanting to connect";
       } catch (SocketException e) {
         getLogger().warn("Socket error on initial connect", e);
+        queueReconnect(qa);
+      } catch (UnresolvedAddressException e) {
+        getLogger().warn("Unresolved Address error on initial connect", e);
         queueReconnect(qa);
       }
       connections.add(qa);
