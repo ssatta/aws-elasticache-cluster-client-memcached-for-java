@@ -340,6 +340,10 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     this.bufSize = bufSize;
     this.connectionFactory = f;
     isInitialClusterConfigApplied = false;
+    metrics = f.getMetricCollector();
+    metricType = f.enableMetrics();
+
+    registerMetrics();
 
     isTlsMode = f.getSSLContext() != null;
 
@@ -369,11 +373,6 @@ public class MemcachedConnection extends SpyThread implements ClusterConfigurati
     
     List<MemcachedNode> connections = createConnections(endPoints);
     locator = f.createLocator(connections);
-
-    metrics = f.getMetricCollector();
-    metricType = f.enableMetrics();
-
-    registerMetrics();
 
     setName("Memcached IO over " + this);
     setDaemon(f.isDaemon());
