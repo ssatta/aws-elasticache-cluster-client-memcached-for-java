@@ -100,7 +100,7 @@ This argument is used to specify the folder of the 2 certificates for starting m
 Besides, your testing server should be built with TLS capability. See instruction: https://github.com/memcached/memcached/wiki/TLS
 
 # More Information for Amazon ElastiCache Cluster Client
-Github link: https://github.com/amazonwebservices/aws-elasticache-cluster-client-memcached-for-java.
+Github link: https://github.com/awslabs/aws-elasticache-cluster-client-memcached-for-java.
 This repository is a fork of the spymemcached Java client for connecting to memcached (specifically the https://github.com/dustin/java-memcached-client repo).
 
 Additional changes have been made to support Amazon ElastiCache Auto Discovery. To read more about Auto Discovery, please go here: https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/AutoDiscovery.html.
